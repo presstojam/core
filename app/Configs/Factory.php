@@ -49,9 +49,9 @@ class Factory {
         $options = [];
         if ($configs->cert) {
             $options = array(
-                PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8',
-                PDO::MYSQL_ATTR_SSL_CA => $configs->cert,
-                PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false,
+                \PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8',
+                \PDO::MYSQL_ATTR_SSL_CA => $configs->cert,
+                \PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false,
             );
         }
         $pdo = new \PDO($dsn, $configs->user, $configs->pass, $options);
