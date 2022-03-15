@@ -81,7 +81,7 @@ class DObject {
         foreach ($this->fields as $field=>$cell) {
             if ($cell->hasState(Cell\CellStates::filter) or $cell->hasState(Cell\CellStates::write)) {
                 $rule = $cell->validate();
-                if ($rule != ValidationRules::OK) {
+                if ($rule != Cells\ValidationRules::OK) {
                     $errors[$field] = $rule;
                 }
             }
