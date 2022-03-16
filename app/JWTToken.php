@@ -26,6 +26,7 @@ class JWTToken {
         return JWT::encode($payload, $this->key, $this->encoding);
     }
 
+    
     public function decode($token) {
        
         try {
