@@ -36,53 +36,5 @@ class GlobalConfigs {
         }
     }
 
-    function registerFromEnv($env) {
-        if (isset($env['dbhost'])) {
-            $config = new PDO();
-            $config->host = $env['dbhost'];
-            $config->name = $env['dbname'];
-            $config->user = $env['dbuser'];
-            $config->pass = $env['dbpass'];
-            $config->port = $env['dbport'];
-            $this->register("pdo", $config);
-        }
-
-
-        if (isset($env['jwtkey'])) {
-            $config = new JWT();
-            $config->secret = $env['jwtkey'];
-            $this->register("jwt", $config);
-        }
-
-        if (isset($env['s3bucket'])) {
-            $config = new AWS();
-            $config->resource = $env['s3bucket'];
-            if (isset($env['s3path'])) {
-                $config->prefix = rtrim($env['s3path'], "/") . "/";
-            }
-            $this->register("awss3", $config);
-        }
-
-        if (isset($env['s3publicbucket'])) {
-            $config = new AWS();
-            $config->resource = $env['s3publicbucket'];
-            $config->public = true;
-            if (isset($_ENV['s3publicpath'])) {
-                $config->prefix = $env['s3publicpath'];
-            }
-            $this->register("awss3public", $config);
-        }
-
-        if (isset($env['cfdistid'])) {
-            $config = new AWS();
-            $config->resource = $env['cfdistid'];
-            $this->register("awscloudfront", $config);
-        }
-
-        if (isset($env['sqsarn'])) {
-            $config = new AWS();
-            $config->resource = $env['sqsarn'];
-            $this->register("awssqs", $config);
-        }
-    }
+    
 }
