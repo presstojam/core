@@ -8,7 +8,7 @@ class Setup
     {
 
         //register psr-4 autoload
-        spl_autoload_register(function ($class_name) {
+        spl_autoload_register(function ($class_name) use ($base) {
             $parts = explode("\\", $class_name);
             $file = $base .  "/";
             array_shift($parts);
