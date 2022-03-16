@@ -1,6 +1,7 @@
 <?php
 namespace PressToJamCore;
 use \Firebase\JWT\JWT;
+use \Firebase\JWT\Key;
 
 class JWTToken {
 
@@ -28,7 +29,7 @@ class JWTToken {
     public function decode($token) {
        
         try {
-            $payload = JWT::decode($token, $this->key, array($this->encoding));
+            $payload = JWT::decode($token, new Key($this->key, $this->encoding));
         } catch(\Firebase\JWT\ExpiredException $e){
             $this->has_expired = true;
             return false;
