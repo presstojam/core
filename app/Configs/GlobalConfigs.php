@@ -23,8 +23,8 @@ class GlobalConfigs {
     }
 
 
-    function getAllConfigs($type) {
-        return $this->configs[$type];
+    function getConfigs() {
+        return $this->configs;
     }
 
 

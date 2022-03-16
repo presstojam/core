@@ -62,7 +62,9 @@ class Factory {
 
     static function getUser() {
         $conf = GlobalConfigs::s();
-        return $conf->getConfig("user");
+        $configs = $conf->getConfigs();
+        if (isset($configs["user"])) return $configs["user"];
+        else return null;
     }
 
 }
