@@ -16,5 +16,10 @@ class DirectoryManager {
         return new \RecursiveIteratorIterator($it);
     }
 
+    static function getRecursiveFilesReverse($dir) {
+        $it = new \RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS);
+        return new \RecursiveIteratorIterator($it, \RecursiveIteratorIterator::CHILD_FIRST);
+    }
+
 
 }
