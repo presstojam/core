@@ -5,9 +5,9 @@ namespace PressToJamCore;
 class DirectoryManager {
 
 
-    static function getRelativeFileName($file) {
+    static function getRelativeFileName($dir, $file) {
         $file = str_replace("\\", "/", $file);
-        $dir = str_replace("\\", "/", $this->config->dir);
+        $dir = str_replace("\\", "/", $dir);
         return str_replace($dir, "", $file);
     }
 
