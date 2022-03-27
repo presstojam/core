@@ -147,10 +147,10 @@ class DataTree  {
                 foreach($rem as $key) {
                     unset($this->data_models[$struct->to][$key]);
                 }
-            } else {
-                foreach($this->data_models[$struct->to] as $parent_obj) {
-                    $obj = $this->getDataObjWhere($struct->from, $struct->from_col, $parent_obj->getData($struct->to_col));
-                    if (!$obj) {
+            } else { //this is the parent
+                foreach($this->data_models[$struct->from] as $obj) {
+                    $parent_obj = $this->getDataObjWhere($struct->to, $struct->to_col, $obj->getData($struct->from_col));
+                    if (!$parent_obj) {
                         throw new \Exception("Trying to connect parent " . $struct->to_col . " to missing tree " . $struct->from);
                     }
                     $obj->addParent($struct->display_name, $parent_obj);
