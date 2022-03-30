@@ -20,12 +20,9 @@ class Setup
         });
     }
 
-    public static function loadConfigs($base)
+    public static function loadConfigs()
     {
         $s = Configs\GlobalConfigs::s();
-
-        $dotenv = \Dotenv\Dotenv::createImmutable($base);
-        $dotenv->load();
 
         if (isset($_ENV['dbhost'])) {
             $config = new Configs\PDO();
