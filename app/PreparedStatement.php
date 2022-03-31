@@ -70,7 +70,13 @@ class PreparedStatement {
     function buildWhere() {
         $cols = [];
         foreach($this->pieces->filter_cols as $part) {
-            $cols[] = $part[0] . " " . $part[1] . " ?";
+            if (is_array($part[2])) {
+                foreach($part[2] as $val) {
+                    $cols[] = $part[0] . " " . $part[1] . " ?";
+                }
+            } else {
+                $cols[] = $part[0] . " " . $part[1] . " ?";
+            }
         }
         if (count($cols) > 0) {
             return " WHERE " . implode(" AND ", $cols) . " ";
