@@ -157,7 +157,6 @@ class PreparedStatement {
         }
         $sql .= $where;
         $sql .= $this->buildOrder();
-        $sql .= $this->buildLimit();
         return $sql;
     }
 
