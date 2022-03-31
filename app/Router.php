@@ -33,7 +33,7 @@ class Router
 
             foreach($request as $key=>$value) {
                 if ($key == "graph") {
-                    $vals = json_decode($value);
+                    $vals = json_decode($value, true);
                     unset($request["graph"]);
                     foreach($vals as $key=>$nval) {
                         $request[$key] = $nval;

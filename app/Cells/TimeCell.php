@@ -32,7 +32,7 @@ class TimeCell extends Cell {
     }
 
     function getTimestamp($date) {
-        $d = \DateTime::createFromFormat('Y-m-d H:i:s', $date);
+        $d = \DateTime::createFromFormat('Y-m-d\TH:i', $date);
         if (!$d) {
             throw new \Exception("Datetime could not be created from date: " . $date);
         }
