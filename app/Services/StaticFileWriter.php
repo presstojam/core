@@ -41,5 +41,13 @@ class StaticFileWriter {
         $this->s3host->push($file, $html_str);
     }
 
+    function writeCSS() {
+
+    }
+
+
+    function writeJS() {
+        
+    }
 
 }

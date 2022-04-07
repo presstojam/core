@@ -39,6 +39,7 @@ class DObjectRels {
     function init(Request $request)
     {
         $dobject = $this->cache[array_key_first($this->cache)];
+        $dobject->initReferences($dobject);
         if ($request->to) {
             $this->initParent($dobject, $request->to, true);
         }
@@ -82,6 +83,7 @@ class DObjectRels {
                     $this->cache[$struct->to] = new $ns_name();
                 }
                 $this->cache[$struct->to]->turnOn();
+                $this->initReferences($this->cache[$struct->to]);
                 $this->structs[$struct->to] = $struct;
                 $this->initChildren($this->cache[$struct->to], $children);
             }
@@ -103,13 +105,14 @@ class DObjectRels {
         }
     }
 
-    function initReferences($node, $limitrefs) {
+    function initReferences($node, $limitrefs = []) {
         if (in_array($limitrefs, $node->_name)) return;
         $refs = $node->getReferences();
         foreach($refs as $alias=>$ref) {
             if (!isset($this->cache[$ref->to])) {
                 $ns_name = "\PressToJam\DataObjects\\" . $ref->class_name;
                 $this->cache[$alias] = new $ns_name();
+                $this->cache[$alias]->turnOnSummary();
                 $this->structs[$alias] = $ref;
             }
         }
