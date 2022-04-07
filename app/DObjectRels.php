@@ -39,7 +39,7 @@ class DObjectRels {
     function init(Request $request)
     {
         $dobject = $this->cache[array_key_first($this->cache)];
-        $dobject->initReferences($dobject);
+        $this->initReferences($dobject);
         if ($request->to) {
             $this->initParent($dobject, $request->to, true);
         }
@@ -66,7 +66,7 @@ class DObjectRels {
 
         if ($turn_on) $this->cache[$parent->to]->turnOn();
         else $this->cache[$parent->to]->turnOnKeys();
-        $this->structs[$parent->from] = $parent;
+        $this->structs[] = $parent;
       
         if ($parent->to == $to) return;
 
@@ -100,20 +100,21 @@ class DObjectRels {
                 $this->cache[$struct->to] = new $ns_name();
             }
             $this->cache[$struct->to]->turnOn();
-            $this->structs[$struct->to] = $struct;
+            $this->structs[] = $struct;
             $this->initAllChildren($this->cache[$struct->to]);
         }
     }
 
     function initReferences($node, $limitrefs = []) {
-        if (in_array($limitrefs, $node->_name)) return;
+        if (in_array($node->_name, $limitrefs)) return;
         $refs = $node->getReferences();
-        foreach($refs as $alias=>$ref) {
+        foreach($refs as $ref) {
             if (!isset($this->cache[$ref->to])) {
                 $ns_name = "\PressToJam\DataObjects\\" . $ref->class_name;
-                $this->cache[$alias] = new $ns_name();
-                $this->cache[$alias]->turnOnSummary();
-                $this->structs[$alias] = $ref;
+                $ref->alias = "t" . count($this->structs);
+                $this->cache[$ref->alias] = new $ns_name($ref->alias);
+                $this->cache[$ref->alias]->turnOnSummary();
+                $this->structs[] = $ref;
             }
         }
     }
@@ -211,9 +212,12 @@ class DObjectRels {
     function buildJoin($stmtpieces) {
         foreach($this->structs as $struct) {
             $stmtpieces->join .= ($struct->required) ? " INNER JOIN " : " LEFT OUTER JOIN ";
-            $stmtpieces->join .= $struct->to . " ON ";
+            $stmtpieces->join .= $struct->to;
+            if ($struct->alias) $stmtpieces->join .= " " . $struct->alias;
+            $stmtpieces->join .= " ON ";
             $stmtpieces->join .= $struct->from . "." . $struct->from_col;
-            $stmtpieces->join .= " = " . $struct->to . "." . $struct->to_col;
+            $to = ($struct->alias) ? $struct->alias : $struct->to;
+            $stmtpieces->join .= " = " . $to . "." . $struct->to_col;
         }
     }
 

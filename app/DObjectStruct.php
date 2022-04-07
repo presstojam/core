@@ -18,4 +18,5 @@ class DObjectStruct {
     public $display_name;
     public $class_name;
     public $type;
+    public $alias;
 }
