@@ -124,9 +124,9 @@ class DataTree  {
                     $obj->addChild($struct->display_name, $child_id, $child_obj);
                 }
             } else if ($struct->type == \PressToJamCore\DObjectStructTypes::ref) {
-                foreach($this->data_models[$struct->to] as $ref_obj) {
-                    $obj = $this->getDataObjWhere($struct->from, $struct->from_col, $ref_obj->getData($struct->to_col));
-                    if (!$obj) {
+                foreach($this->data_models[$struct->from] as $obj) {
+                    $ref_obj = $this->getDataObjWhere($struct->to, $struct->to_col, $obj->getData($struct->from_col));
+                    if (!$ref_obj) {
                         throw new \Exception("Trying to connect reference " . $struct->to_col . " to missing tree " . $struct->from);
                     }
                     $obj->addReference($struct->display_name, $ref_obj);

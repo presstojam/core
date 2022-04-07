@@ -179,7 +179,7 @@ class DObjectRels {
         foreach($this->cache as $name=>$stmt) {
             $arr = $stmt->export($raw);
             $id = $stmt->getPrimary();
-            if ($id) $tree->addData($name, $id, $arr);
+            if ($id) $tree->addData($stmt->table, $id, $arr);
         }
     }
 
