@@ -62,11 +62,12 @@ class DObjectRels {
         if(!isset($this->cache[$parent->to])) {
             $ns_name = "\PressToJam\DataObjects\\" . $parent->class_name;
             $this->cache[$parent->to] = new $ns_name();
+            $this->structs[] = $parent;
         }
 
         if ($turn_on) $this->cache[$parent->to]->turnOn();
         else $this->cache[$parent->to]->turnOnKeys();
-        $this->structs[] = $parent;
+        
       
         if ($parent->to == $to) return;
 
@@ -81,10 +82,10 @@ class DObjectRels {
                 if (!isset($this->cache[$struct->to])) {
                     $ns_name = "\PressToJam\DataObjects\\" . $struct->class_name;
                     $this->cache[$struct->to] = new $ns_name();
+                    $this->structs[] = $struct;
                 }
                 $this->cache[$struct->to]->turnOn();
                 $this->initReferences($this->cache[$struct->to]);
-                $this->structs[$struct->to] = $struct;
                 $this->initChildren($this->cache[$struct->to], $children);
             }
         }
@@ -98,9 +99,9 @@ class DObjectRels {
             if (!isset($this->cache[$struct->to])) {
                 $ns_name = "\PressToJam\DataObjects\\" . $struct->class_name;
                 $this->cache[$struct->to] = new $ns_name();
+                $this->structs[] = $struct;
             }
             $this->cache[$struct->to]->turnOn();
-            $this->structs[] = $struct;
             $this->initAllChildren($this->cache[$struct->to]);
         }
     }
