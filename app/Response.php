@@ -9,7 +9,7 @@ class Response implements \JsonSerializable {
     private $user;
     private $user_id;
     private $lang;
-    private $debug_data;
+    static private $debug_data = [];
    
 
     public function __construct() {
@@ -41,8 +41,8 @@ class Response implements \JsonSerializable {
         $this->data = $fields;
     }
 
-    public function setDebugData(array $fields) {
-        $this->debug_data = $fields;
+    static public function setDebugData(array $fields) {
+        self::$debug_data = array_merge(self::$debug_data, $fields);
     }
 
     public function addData($name, $value) {
@@ -81,7 +81,7 @@ class Response implements \JsonSerializable {
         if ($this->status()) {
             $obj->__status = "SUCCESS";
             $obj->__count = $this->count;
-            $obj->__debug = $this->debug_data;
+            $obj->__debug = self::$debug_data;
             if ($this->user) {
                 $obj->__profile = $this->user;
                 $obj->__profile_id = $this->user_id;

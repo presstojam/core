@@ -29,6 +29,7 @@ class PreparedStatement {
     
     function prepare($sql)
     {
+        Response::setDebugData(["sql"=>$sql]);
         $this->sql = $sql;
         try {
             $this->stmt = $this->pdo->prepare($sql);
@@ -39,6 +40,7 @@ class PreparedStatement {
 
  
     function execute($args=[]) {
+        Response::setDebugData(["args"=>$args]);
         try {
             $this->stmt->execute($args);
         } catch(\PDOException $e) {
