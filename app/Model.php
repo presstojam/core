@@ -7,17 +7,12 @@ class Model
     protected $pdo;
     protected $request = array();
     protected $is_secure = true;
-    protected $rels;
-    protected $original_data = [];
-    protected $response;
-  
-
+    protected $unique_checks=[];
+    
     function __construct($pdo, $is_secure, $request = null) {
         $this->pdo     = $pdo;
         $this->is_secure = $is_secure;
         $this->request  =  $request;
-        $this->response = new Responses\Response();
-        
     }
 
     function __get($name) {
@@ -33,45 +28,118 @@ class Model
         $this->request = $request;
     }
 
-    function init() {
-        $this->rels->init($this->request);
-        $this->rels->mapAliases($this->request);
-    }
 
-    function setData() {
-        $this->rels->applyData($this->request->data);
-        $errors = $this->rels->validate();
-        if (count($errors) > 0) {
-            throw new Exceptions\ValidationException($errors);
-        }
-        $this->rels->calculate();
-    }
+    function create($meta, $maps) {
+        
+        $stmt_builder = new StmtBuilder($meta);
+        $sql =$stmt_builder->insert();
 
-    function getSQL($type, $pieces) {
-        $stmt = new PreparedStatement($this->pdo, $pieces);
-        $sql = $stmt->$type();
+        $stmt = $this->getSQL("insert", $sql);
 
-        if ($this->request->debug) {
-            $this->response->setDebugData(["sql"=>$sql, "args"=>$this->rels->getArgs()]);
-        }
-        $stmt->prepare($sql);
-        if ($this->request->sets) {
-            $arr=[];
-            for($i=0; $i<$this->request->sets; ++$i) {
-                $arr[] = $stmt->execute($this->rels->getArgsByRow($i));
+        if (is_array($maps)) {
+            $ids=[];
+            foreach($maps as $map) {
+                $stmt->execute($map->toArgs());
+                $ids[] = $this->pdo->lastInsertId();
             }
-            return $arr;
         } else {
-            return $stmt->execute($this->rels->getArgs());
+            $stmt->execute($maps->toArgs());
+            return $this->pdo->lastInsertId();
         }
+                
+    }
+
+
+    function update($meta, $maps) {
+
+        $stmt_builder = new StmtBuilder($meta);
+        $sql =$stmt_builder->update();
+      
+        $stmt = $this->getSQL("update", $sql);
+
+        if (is_array($maps)) {
+            foreach($maps as $map) {
+                $stmt->execute($map->toArgs());
+            }
+        } else {
+            $stmt->execute($maps->toArgs());
+        }
+    }
+
+
+    function fetchRow($meta, $res) {
+        $data = $res->fetch(\PDO::FETCH_NUM);
+        return $meta->fold($data);
+    }
+
+
+    function fetchAll($meta, $res) {
+        $results = [];
+        $data = $res->fetchAll(\PDO::FETCH_NUM);
+        foreach($data as $row) {
+            $results[] = $meta->fold($row);
+        }
+        return $results;
+    }
+
+
+    function retrieve($meta, $maps) {
+
+        $stmt_builder = new StmtBuilder($meta);
+        $sql =$stmt_builder->select();
+
+        $stmt = $this->getSQL("select", $sql);
+
+        if (is_array($maps)) {
+            $results=[];
+            foreach($maps as $map) {
+                $res = $stmt->execute($map->toArgs());
+                $results = array_merge($results, $this->fetchAll($meta, $map));
+            }
+            return $results;
+        } else {
+            $res = $stmt->execute($maps->toArgs());
+            if ($meta->limit == 1) {
+                return $this->fetchRow($meta, $res);
+            } else {
+                return $this->fetchAll($meta, $res);
+            }
+        }
+    }
+
+
+    function delete($meta, $maps) {
+        if (is_array($maps)) $maps = [$maps];
+
+        $stmt_builder = new StmtBuilder($meta);
+        $sql =$stmt_builder->delete();
+      
+        $stmt = $this->getSQL("delete", $sql);
+
+        foreach ($maps as $map) {
+            $stmt->execute($map->toArgs());
+        }
+    }
+
+
+    function count($meta, $map) {
+        $stmt_builder = new StmtBuilder($meta);
+        $sql =$stmt_builder->count();
+        $stmt = $this->getSQL("count", $sql);
+        $res = $stmt->execute($map->toArgs());
+        return $res->fetch(\PDO::FETCH_ASSOC);
+    }
+
+
+    function getSQL($type, $sql) {
+        $stmt = new PreparedStatement($this->pdo);
+        //echo $sql;
+        //exit;
+        $stmt->prepare($sql);
+        return $stmt;
     }
   
-    function setResults() {
-        $root = $this->rels->getRoot();
-        $this->response->setData($root->export($this->request->raw));
-        return $this->response;
-    }
-
+   
     function loadArchive($tree) {
         $archives = $this->rels->getActiveArchives();
         $request = new Request([]);
@@ -79,6 +147,60 @@ class Model
             $ns = "\PressToJam\Models\\" . $class_name;
             $archive = new $ns($this->pdo, $request);
             $archive->addToTree($tree);
+        }
+    }
+
+
+    function createMap($meta, $data, $include_data = false) {
+        $map = new DataMap();
+
+        $collections = $meta->getAllInputCollections();
+        foreach($collections as $col) {
+            $slug = $col->slug;
+            $cdata = $data;
+            if ($slug) {
+                $cdata = (!isset($cdata[$slug])) ? [] : $cdata[$slug];
+            }
+            if ($include_data) {
+                $fields = $col->data_fields;
+                foreach ($fields as $fslug=>$field) {
+                    $val = (isset($cdata[$fslug])) ? $cdata[$fslug] : null;
+                    $map->addCell($field, $val);
+                }
+            }
+            
+            $fields = $col->filter_fields;
+            foreach ($fields as $fslug=>$field) {
+                $val = (isset($cdata[$fslug])) ? $cdata[$fslug] : null;
+                $map->addCell($field, $val);
+            }
+        }
+
+        $map->validate();
+
+        foreach($this->unique_checks as $check) {
+            $func = $check;
+            $func($map);
+        }
+       
+        return $map;
+    }
+
+
+    function loadChildren($data, $meta) {
+        $sql_pieces =$meta->convertToSQLChildrenPieces();
+        $stmt = $this->getSQL("select", $sql_pieces);
+
+        if (!is_array($maps)) $maps = [$maps];
+        foreach ($maps as $map) {
+            $stmt->execute($map->toArgs());
+
+            $results = [];
+            $data = $res->fetchAll(\PDO::FETCH_NUM);
+            foreach($data as $row) {
+                $results[] = $meta->fold($row);
+            }
+            return $results;
         }
     }
 

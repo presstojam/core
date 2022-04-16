@@ -2,22 +2,18 @@
 
 namespace PressToJamCore\Cells;
 
-class NumberCell extends MetaCell {
+class FlagCell extends MetaCell {
 
-    protected $round = 0;
+    protected $is_primary = false;
+    protected $is_parent = false;
+    protected $reference = null;
+    protected $circular = false;
 
-    function __get($name) {
-        if (property_exists($this, $name)) return $this->$name;
-        else return null;
-    }
 
 
     function setType($data) {
         if (is_array($data)) {
-            if (isset($data['min']) AND isset($data['max'])) $this->type = CellValueType::range;
-            else if (isset($data['min'])) $this->type = CellValueType::min;
-            else if (isset($data['max'])) $this->type = CellValueType::max;
-            else $this->type = CellValueType::set;
+           $this->type = CellValueType::set;
         } else {
             $this->type = CellValueType::fixed;
         }
@@ -36,10 +32,10 @@ class NumberCell extends MetaCell {
     function map($value) {
         if (is_array($value)) {
             foreach($value as $key=>$val) {
-                $value[$key] = (is_numeric($val)) ? $val : 0;
+                $value[$key] = ($val) ? 1 : 0;
             }
         } else {
-            $value = (is_numeric($value)) ? $value : 0;
+            $value = ($value) ? 1 : 0;
         }
         return $value;
     }
@@ -65,22 +61,17 @@ class NumberCell extends MetaCell {
 
 
     function mapToStmtFilter($col) {
-        if ($this->type == CellValueType::range) {
-            return $col . " >= ? AND " . $col . " <= ?";
-        } else if ($this->type == CellValueType::min) {
-            return $col . " >= ?";
-        } else if ($this->type == CellValueType::max) {
-            return $col . " <= ?";
-        } else {
-            return $col .= " = ?";
-        }
+        return $col .= " = ?";
     }
 
 
+    function export($val) {
+        return $val;
+    }
+
     function toSchema() {
-        $arr = parent::toSchema();
-        $arr["type"] = "Number";
-        $arr["round"] = $this->round;
+        $arr=parent::toSchema();
+        $arr["type"] = "Flag";
         return $arr;
     }
 }

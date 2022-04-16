@@ -2,17 +2,21 @@
 
 namespace PressToJamCore\Cells;
 
-class StringCell extends Cell {
+class StringCell extends MetaCell {
+
+    protected $encrypted = false;
 
     function __get($name) {
-        if ($name == "param_type") return \PDO::PARAM_STR;
-        else if (property_exists($this, $name)) return $this->$name;
+        if (property_exists($this, $name)) return $this->$name;
         else return null;
     }
     
-    function __toString() {
-        return $this->value;
+
+    function setType($data) {
+        if (is_array($data)) $this->type = CellValueType::set;
+        else $this->type = CellValueType::fixed;
     }
+
 
     function setValidation($min, $max, $contains = "", $not_contains = "") {
         $this->min = $min;
@@ -22,24 +26,19 @@ class StringCell extends Cell {
     }
 
 
-
     function map($value) {
         if (is_array($value)) {
             foreach($value as $key=>$val) {
                 $value[$key] = trim($val);
             }
-            $this->value = $value;
         } else {
-            $this->value = trim($value);
+            $value = trim($value);
         }
+        return $value;
     }
 
 
-
-    function validate() {
-
-        if (!$this->isOn()) return ValidationRules::OK;
-
+    function validate($value) {
         $validateVal = function($self, $val) {
             $rule = $self->validateSize(strlen($val));
             if ($rule != ValidationRules::OK) {
@@ -55,15 +54,15 @@ class StringCell extends Cell {
 
         
 
-        if (is_array($this->value)) {
-            foreach ($this->value as $key=>$val) {
+        if (is_array($value)) {
+            foreach ($value as $key=>$val) {
                 $rule = $validateVal($this, $val);
                 if ($rule != ValidationRules::OK) {
                     return $rule;
                 }
             }
         } else {
-            $rule = $validateVal($this, $this->value);
+            $rule = $validateVal($this, $value);
             if ($rule != ValidationRules::OK) {
                 return $rule;
             }
@@ -72,8 +71,24 @@ class StringCell extends Cell {
     }
 
 
-    function reset() {
-        $this->value = null;
+    function mapToStmtFilter($col) {
+        if ($this->type == CellValueType::set) {
+            return $col . " LIKE ?";
+        } else {
+            return $col . " = ?";
+        }
+    }
+
+    function export($val) {
+        if ($this->encrypted) return "xxxxxxxx";
+        else return $val;
+    }
+
+    function toSchema() {
+        $arr = parent::toSchema();
+        $arr["type"] = "String";
+        if ($this->encrypted) $arr["encrypted"] = true;
+        return $arr;
     }
 
 }

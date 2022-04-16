@@ -30,7 +30,7 @@ class GlobalConfigs {
 
     function getConfig($type) {
         if (!isset($this->configs[$type])) {
-            throw new \Exception(__FILE__ . "::" . __LINE__ . " Trying to call configs for " . $type . " before it is set");
+            throw new \Exception(__FILE__ . "::" . __LINE__ . " Trying to call configs for " . $type . " before it is set >> ");
         } else {
             return $this->configs[$type];
         }

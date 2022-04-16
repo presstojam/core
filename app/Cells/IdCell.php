@@ -2,14 +2,13 @@
 
 namespace PressToJamCore\Cells;
 
-class NumberCell extends MetaCell {
+class IdCell extends MetaCell {
 
-    protected $round = 0;
+    protected $is_primary = false;
+    protected $is_parent = false;
+    protected $reference = null;
+    protected $is_circular = false;
 
-    function __get($name) {
-        if (property_exists($this, $name)) return $this->$name;
-        else return null;
-    }
 
 
     function setType($data) {
@@ -77,10 +76,25 @@ class NumberCell extends MetaCell {
     }
 
 
+    function export($val) {
+        return $val;
+    }
+
     function toSchema() {
-        $arr = parent::toSchema();
-        $arr["type"] = "Number";
-        $arr["round"] = $this->round;
+        $arr=parent::toSchema();
+        $arr["type"] = "ID";
+        if ($this->is_primary) {
+            $arr["is_primary"] = true;
+        }
+        if ($this->is_parent) {
+            $arr["is_parent"] = true;
+        }
+        if ($this->reference) {
+            $arr["reference"] = $this->reference;
+        }
+        if ($this->is_circular) {
+            $arr["circular"] = true;
+        }
         return $arr;
     }
 }

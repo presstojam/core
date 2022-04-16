@@ -2,13 +2,14 @@
 
 namespace PressToJamCore\Cells;
 
-class AssetCell extends Cell {
+class AssetCell extends MetaCell {
 
     private $token;
     private $size = 0;
     private $chunk_size = 0;
     private $tmp_file_dir;
     private $name_template = "";
+    private $hook;
   
 
     function __set($name, $value) {
@@ -21,10 +22,7 @@ class AssetCell extends Cell {
         else return null;
     }
     
-    function __toString() {
-        return $this->value;
-    }
-
+ 
     function setValidation($min, $max, $contains = "", $not_contains = "") {
         $this->min = $min;
         $this->max = $max;
@@ -32,12 +30,9 @@ class AssetCell extends Cell {
         $this->not_contains = $not_contains;
     }
 
-    function getKeyName($id, $value) {
-        return str_replace("%id", $id, $value);
-    }
 
-    function convertKeyName($id) {
-        $this->value = $this->getKeyName($id, $this->value);
+    function convertKeyName($val, $id) {
+        return str_replace("%id", $id, $val);
     }
 
    
@@ -48,37 +43,30 @@ class AssetCell extends Cell {
    
     function map($val) {
         if (is_array($val)) {
-            if (isset($val['size'])) {
-                $this->size = $val['size'];
-            }
-
             $extension = "";
             if (isset($val['name'])) {
                 $extension = \pathinfo($val['name'], \PATHINFO_EXTENSION);
             }
-            $this->value = str_replace("%ext", $extension, $this->name_template);
-        } else {
-            $this->value= $val;
-        }
+            $val['name'] = str_replace("%ext", $extension, $this->name_template);
+        } 
+        return $val;
     }
 
 
-    function validate() {
-        if ($this->isOn()) {
-            $rule = $this->validateSize($this->size);
-            if ($rule != ValidationRules::OK) {
-                return $rule;
-            }
-            $rule = $this->validateValue($this->value);
+    function validate($value) {
+        $size = (isset($value['size'])) ? $value['size'] : 0;
+        $name = (isset($value['name'])) ? $value['name'] : "";
+        $rule = $this->validateSize($size);
+        if ($rule != ValidationRules::OK) {
             return $rule;
-        } else {
-            return ValidationRules::OK;
         }
+        $rule = $this->validateValue($name);
+        return $rule;
     }
 
 
-    public function writeFile($data) {
-        $ext = \pathinfo($this->value, \PATHINFO_EXTENSION);
+    public function writeFile($key, $data) {
+        $ext = \pathinfo($key, \PATHINFO_EXTENSION);
         if (!$ext) {
             throw new \Exception("No extension for file");
         }
@@ -86,7 +74,7 @@ class AssetCell extends Cell {
         if (!is_string($data)) {
             $data =  pack('C*', ...$data);
         }
-        $writer->push($this->value, $data);
+        $writer->push($key, $data);
     } 
 
 
@@ -100,7 +88,7 @@ class AssetCell extends Cell {
         return basename($chunk_name);
     }
 
-    public function completeMultipartFileUpload($chunks) {
+    public function completeMultipartFileUpload($key, $chunks) {
         $big_file = $this->tempLocation();
         $temp_fp = fopen($big_file, "a");
         foreach($chunks as $chunk) {
@@ -109,41 +97,50 @@ class AssetCell extends Cell {
         }
 
         $writer = \PressToJamCore\Configs\Factory::createS3Writer();
-        $writer->push($this->value, file_get_contents($big_file));
+        $writer->push($key, file_get_contents($big_file));
         unlink($big_file);
     }
 
 
-    public function removeAsset() {
+    public function removeAsset($key) {
         $writer = \PressToJamCore\Configs\Factory::createS3Writer();
-        $writer->remove($this->value);
+        $writer->remove($key);
     }
 
 
-    public function copyAsset($old_file) {
+    public function copyAsset($key, $old_file) {
         $writer = \PressToJamCore\Configs\Factory::createS3Writer();
-        $writer->copy($this->value, $old_file);
+        $writer->copy($key, $old_file);
     }
 
 
-    public function view() {
+    public function view($key) {
         //can set header from extension
         $writer = \PressToJamCore\Configs\Factory::createS3Writer();
-        return $writer->get($this->value);
+        return $writer->get($key);
     }
 
 
-    function toOutput() {
-        return $this->value;
+    function export($value, $id = null) {
+        return $this->convertKeyName($value, $id);
     }
 
-    function export($id = null) {
-        $this->convertKeyName($id);
-        return $this->value;
+
+    function runHook() {
+        if ($this->hook) {
+            $this->hook();
+        }
     }
 
-    function reset() {
-        $this->value = null;
+    function mapToStmtFilter($name) {
+        return $name . " = ?";
+    }
+
+
+    function toSchema() {
+        $arr = parent::toSchema();
+        $arr["type"] = "Asset";
+        return $arr;
     }
 
 }

@@ -134,9 +134,13 @@ class Request {
         if (isset($this->group[$model])) $mapVals($this->group[$model], $aliases);
     }
 
-    function addValue($model, $name, $key) {
-        if (!isset($this->data[$model])) $this->data[$model] = [];
-        $this->data[$model][$name] = $key;
+    function addValue($name, $key, $model = null) {
+        if($model) {
+            if (!isset($this->data[$model])) $this->data[$model] = [];
+            $this->data[$model][$name] = $key;
+        } else {
+            $this->data[$name] = $key;
+        }
     }
 
     function removeValue($model, $name) {

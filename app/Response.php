@@ -1,5 +1,5 @@
 <?php
-namespace PressToJamCore\Responses;
+namespace PressToJamCore;
 
 class Response implements \JsonSerializable {
 
