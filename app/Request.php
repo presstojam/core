@@ -25,8 +25,8 @@ class Request {
         if (isset($request['page'])) unset($request['page']);
         $this->data = [];
         foreach($request as $key=>$val) {
-            if (strpos($key, "__") === 0) continue;
-            $this->data[str_replace("-", "_", $key)] = $val;
+            if (strpos($key, "__") === 0 AND $key != "__key") continue;
+            $this->data[$key] = $val;
         }
         if (isset($request['__order'])) $this->order = $this->convertKeys($request['__order']);
         if (isset($request['__group'])) $this->group = $this->convertKeys($request['__group']);
@@ -143,16 +143,21 @@ class Request {
         }
     }
 
-    function removeValue($model, $name) {
-        if (isset($this->data[$model])) {
-            if (isset($this->data[$model][$name])) {
-                unset($this->data[$model][$name]);
-                if (count($this->data[$model]) == 0) {
-                    unset($this->data[$model]);
+    function removeValue($name, $model = null) {
+        if ($model) {
+            if (isset($this->data[$model])) {
+                if (isset($this->data[$model][$name])) {
+                    unset($this->data[$model][$name]);
+                    if (count($this->data[$model]) == 0) {
+                        unset($this->data[$model]);
+                    }
                 }
             }
+        } else {
+            if (isset($this->data[$name])) unset($this->data[$name]);
         }
     }
+    
 
     function mapUser($table, $col) {
         if(!isset($this->data[$table])) $this->data[$table] = [];

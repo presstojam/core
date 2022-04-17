@@ -18,6 +18,15 @@ class DataMap {
     }
 
 
+    function setKey($id) {
+        foreach($this->cells as $slug=>$cell) {
+            if ($cell->meta_field->is_primary OR $cell->meta_field->is_parent) {
+                $cell->value = $id;
+            }        
+        }
+    }
+
+
     function validate() {
         $errors = [];
         foreach($this->cells as $cell) {
@@ -56,5 +65,9 @@ class DataMap {
                 $cell->calculate($this);
             }
         }
+    }
+
+    function getCell($slug) {
+        return (isset($this->cells[$slug])) ? $this->cells[$slug] : null;
     }
 }

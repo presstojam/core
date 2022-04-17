@@ -29,6 +29,7 @@ class PreparedStatement {
     
     function prepare($sql)
     {
+     //   echo "SQL is " . $sql;
         Response::setDebugData(["sql"=>$sql]);
         $this->sql = $sql;
         try {

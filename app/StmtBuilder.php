@@ -132,6 +132,19 @@ class StmtBuilder {
     }
 
 
+    function archive() {
+        $data_cols = $this->getDataCols();
+        if (count($data_cols) == 0) {
+            throw new \Error("No cols selected for statement ");
+        }
+        $sql = "SELECT " . implode(",", $data_cols);
+        $sql .= " FROM " . $this->meta->table . "_archive " . $this->meta->alias . " ";
+        $sql .= $this->buildFilter();
+        //echo $sql;
+        return $sql;
+    }
+
+
     function selectChildren() {
         $data_cols = [];
         $cols = $this->meta->getAllOutputCollections();

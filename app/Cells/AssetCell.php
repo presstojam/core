@@ -4,12 +4,13 @@ namespace PressToJamCore\Cells;
 
 class AssetCell extends MetaCell {
 
-    private $token;
-    private $size = 0;
-    private $chunk_size = 0;
-    private $tmp_file_dir;
-    private $name_template = "";
-    private $hook;
+    protected $token;
+    protected $size = 0;
+    protected $chunk_size = 0;
+    protected $tmp_file_dir;
+    protected $name_template = "";
+    protected $hook;
+    protected $dir;
   
 
     function __set($name, $value) {
@@ -111,6 +112,15 @@ class AssetCell extends MetaCell {
     public function copyAsset($key, $old_file) {
         $writer = \PressToJamCore\Configs\Factory::createS3Writer();
         $writer->copy($key, $old_file);
+    }
+
+
+    public function uniqueKey($ext) {
+        $writer = \PressToJamCore\Configs\Factory::createS3Writer();
+        do {
+            $key = uniqid($this->dir) . "." . $ext;
+        } while($writer->fileExists($key));
+        return $key;
     }
 
 

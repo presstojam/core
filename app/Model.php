@@ -34,7 +34,7 @@ class Model
         $stmt_builder = new StmtBuilder($meta);
         $sql =$stmt_builder->insert();
 
-        $stmt = $this->getSQL("insert", $sql);
+        $stmt = $this->getSQL($sql);
 
         if (is_array($maps)) {
             $ids=[];
@@ -55,7 +55,7 @@ class Model
         $stmt_builder = new StmtBuilder($meta);
         $sql =$stmt_builder->update();
       
-        $stmt = $this->getSQL("update", $sql);
+        $stmt = $this->getSQL($sql);
 
         if (is_array($maps)) {
             foreach($maps as $map) {
@@ -81,7 +81,7 @@ class Model
         foreach($data as $row) {
             $map = new ResultsMap();
             $meta->fold($row, $map);
-            $results[] = $map;
+            $results[$map->getKey()->value] = $map;
         }
         return $results;
     }
@@ -92,7 +92,32 @@ class Model
         $stmt_builder = new StmtBuilder($meta);
         $sql =$stmt_builder->select();
 
-        $stmt = $this->getSQL("select", $sql);
+        $stmt = $this->getSQL($sql);
+
+        if (is_array($maps)) {
+            $results=[];
+            foreach($maps as $map) {
+                $res = $stmt->execute($map->toArgs());
+                $results = array_merge($results, $this->fetchAll($meta, $res));
+            }
+            return $results;
+        } else {
+            $res = $stmt->execute($maps->toArgs());
+            if ($meta->limit == 1) {
+                return $this->fetchRow($meta, $res);
+            } else {
+                return $this->fetchAll($meta, $res);
+            }
+        }
+    }
+
+
+    function retrieveHistory($meta, $maps) {
+
+        $stmt_builder = new StmtBuilder($meta);
+        $sql =$stmt_builder->archive();
+
+        $stmt = $this->getSQL($sql);
 
         if (is_array($maps)) {
             $results=[];
@@ -118,7 +143,7 @@ class Model
         $stmt_builder = new StmtBuilder($meta);
         $sql =$stmt_builder->delete();
       
-        $stmt = $this->getSQL("delete", $sql);
+        $stmt = $this->getSQL($sql);
 
         foreach ($maps as $map) {
             $stmt->execute($map->toArgs());
@@ -129,29 +154,18 @@ class Model
     function count($meta, $map) {
         $stmt_builder = new StmtBuilder($meta);
         $sql =$stmt_builder->count();
-        $stmt = $this->getSQL("count", $sql);
+        $stmt = $this->getSQL($sql);
         $res = $stmt->execute($map->toArgs());
         return $res->fetch(\PDO::FETCH_ASSOC);
     }
 
 
-    function getSQL($type, $sql) {
+    function getSQL($sql) {
         $stmt = new PreparedStatement($this->pdo);
         //echo $sql;
         //exit;
         $stmt->prepare($sql);
         return $stmt;
-    }
-  
-   
-    function loadArchive($tree) {
-        $archives = $this->rels->getActiveArchives();
-        $request = new Request([]);
-        foreach($archives as $class_name) {
-            $ns = "\PressToJam\Models\\" . $class_name;
-            $archive = new $ns($this->pdo, $request);
-            $archive->addToTree($tree);
-        }
     }
 
 
@@ -178,6 +192,8 @@ class Model
                 $val = (isset($cdata[$fslug])) ? $cdata[$fslug] : null;
                 $map->addCell($fslug, $field, $val);
             }
+
+            if (isset($data["__key"])) $map->setKey($data["__key"]);
         }
 
        $map->validate();
@@ -199,22 +215,7 @@ class Model
             $map = $this->createMap($child, ["__key"=>$id]);
             $results_map[$slug] = $this->retrieve($child, $map);
         }
-        var_dump($results_map);
-        exit;
-        $sql_pieces =$meta->convertToSQLChildrenPieces();
-        $stmt = $this->getSQL("select", $sql_pieces);
-
-        if (!is_array($maps)) $maps = [$maps];
-        foreach ($maps as $map) {
-            $stmt->execute($map->toArgs());
-
-            $results = [];
-            $data = $res->fetchAll(\PDO::FETCH_NUM);
-            foreach($data as $row) {
-                $results[] = $meta->fold($row);
-            }
-            return $results;
-        }
+        return $results_map;
     }
 
     function export($results) {
