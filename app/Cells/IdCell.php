@@ -8,19 +8,6 @@ class IdCell extends MetaCell {
     protected $is_parent = false;
     protected $reference = null;
     protected $is_circular = false;
-
-
-
-    function setType($data) {
-        if (is_array($data)) {
-            if (isset($data['min']) AND isset($data['max'])) $this->type = CellValueType::range;
-            else if (isset($data['min'])) $this->type = CellValueType::min;
-            else if (isset($data['max'])) $this->type = CellValueType::max;
-            else $this->type = CellValueType::set;
-        } else {
-            $this->type = CellValueType::fixed;
-        }
-    }
     
 
     function setValidation($min, $max) {

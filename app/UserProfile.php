@@ -74,7 +74,7 @@ class UserProfile {
 
 
     function switchTokens() {
-        $response = new Responses\Response();
+        $response = new Response();
         $token = Configs\Factory::createJWT();
         $payload = $token->decode($_COOKIE['api-refresh']);
         if ($payload) {

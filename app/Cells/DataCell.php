@@ -33,14 +33,17 @@ class DataCell {
     }
     
 
-    function getType() {
+    function setType() {
         if (is_array($this->value)) {
-            if (isset($this->value["min"]) OR isset($this->value["max"])) return CellValueType::range;
-            else return CellValueType::set;
+            if (isset($this->value['min']) AND isset($this->value['max'])) $this->meta_field->type = CellValueType::range;
+            else if (isset($this->value['min'])) $this->meta_field->type = CellValueType::min;
+            else if (isset($this->value['max'])) $this->meta_field->type = CellValueType::max;
+            else $this->meta_field->type = CellValueType::set;
         } else {
-            return CellValueType::fixed;
+            $this->meta_field->type = CellValueType::fixed;
         }
     }
+
 
     function export() {
         $fvals;

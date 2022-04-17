@@ -11,9 +11,10 @@ class DataMap {
     }
 
 
-    function addCell($meta, $value = null) {
-        $this->cells[$meta->name] = new Cells\DataCell($meta);
-        $this->cells[$meta->name]->value = $value;
+    function addCell($slug, $meta, $value = null) {
+        $this->cells[$slug] = new Cells\DataCell($meta);
+        $this->cells[$slug]->value = $value;
+        $this->cells[$slug]->setType();
     }
 
 
@@ -37,5 +38,23 @@ class DataMap {
             else $args[] = $val;
         }
         return $args;
+    }
+
+
+    function export() {
+        $args=[];
+        foreach($this->cells as $slug=>$cell) {
+            $args[$slug] = $cell->export();
+        }
+        return $args;
+    }
+
+
+    function calculateAssets() {
+        foreach($this->cells as $slug=>$cell) {
+            if (get_class($cell) == "PressToJamCore\Cells\AssetCell") {
+                $cell->calculate($this);
+            }
+        }
     }
 }

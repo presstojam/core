@@ -69,7 +69,9 @@ class Model
 
     function fetchRow($meta, $res) {
         $data = $res->fetch(\PDO::FETCH_NUM);
-        return $meta->fold($data);
+        $map = new ResultsMap();
+        $meta->fold($data, $map);
+        return $map;
     }
 
 
@@ -77,7 +79,9 @@ class Model
         $results = [];
         $data = $res->fetchAll(\PDO::FETCH_NUM);
         foreach($data as $row) {
-            $results[] = $meta->fold($row);
+            $map = new ResultsMap();
+            $meta->fold($row, $map);
+            $results[] = $map;
         }
         return $results;
     }
@@ -94,7 +98,7 @@ class Model
             $results=[];
             foreach($maps as $map) {
                 $res = $stmt->execute($map->toArgs());
-                $results = array_merge($results, $this->fetchAll($meta, $map));
+                $results = array_merge($results, $this->fetchAll($meta, $res));
             }
             return $results;
         } else {
@@ -165,18 +169,18 @@ class Model
                 $fields = $col->data_fields;
                 foreach ($fields as $fslug=>$field) {
                     $val = (isset($cdata[$fslug])) ? $cdata[$fslug] : null;
-                    $map->addCell($field, $val);
+                    $map->addCell($fslug, $field, $val);
                 }
             }
             
             $fields = $col->filter_fields;
             foreach ($fields as $fslug=>$field) {
                 $val = (isset($cdata[$fslug])) ? $cdata[$fslug] : null;
-                $map->addCell($field, $val);
+                $map->addCell($fslug, $field, $val);
             }
         }
 
-        $map->validate();
+       $map->validate();
 
         foreach($this->unique_checks as $check) {
             $func = $check;
@@ -187,7 +191,16 @@ class Model
     }
 
 
-    function loadChildren($data, $meta) {
+    function loadChildren($id, $meta) {
+        $children = $meta->children;
+        $results_map = [];
+        foreach($children as $slug=>$child) {
+            $child->activateParent();
+            $map = $this->createMap($child, ["__key"=>$id]);
+            $results_map[$slug] = $this->retrieve($child, $map);
+        }
+        var_dump($results_map);
+        exit;
         $sql_pieces =$meta->convertToSQLChildrenPieces();
         $stmt = $this->getSQL("select", $sql_pieces);
 
@@ -202,6 +215,19 @@ class Model
             }
             return $results;
         }
+    }
+
+    function export($results) {
+        $exports;
+        if (is_array($results)) {
+            $exports=[];
+            foreach($results as $key=>$map) {
+                $exports[$key] = $map->export();
+            }
+        } else {
+            $exports = $results->export();
+        }
+        return $exports;
     }
 
 }

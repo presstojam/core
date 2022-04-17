@@ -98,6 +98,7 @@ class Response implements \JsonSerializable {
             foreach($this->errors as $key=>$val) {
                 $obj->$key = $val;
             }
+            $obj->__debug = self::$debug_data;
         }
         return $obj;
     }

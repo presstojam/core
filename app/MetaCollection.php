@@ -12,10 +12,12 @@ class MetaCollection {
     protected $references = [];
     protected $filter_fields = [];
     protected $data_fields = [];
+    protected $map_fields = [];
     protected $required = false;
     protected $limit;
     protected $group;
     protected $sort = [];
+    
     static protected $num = 1;
     
     function __construct() {
@@ -33,12 +35,12 @@ class MetaCollection {
     }
 
     function convertToDataMap($datamap, $filtermap) {
-        foreach($this->data_fields as $field) {
-            $map->addCell($field);
+        foreach($this->data_fields as $slug=>$field) {
+            $map->addCell($slug, $field);
         }
 
-        foreach($this->filter_fields as $field) {
-            $filtermap->addCell($field);
+        foreach($this->filter_fields as $slug=>$field) {
+            $filtermap->addCell($slug, $field);
         }
 
         if ($this->parent) $this->parent->convertToDataMap($datamap, $filtermap);
@@ -128,21 +130,18 @@ class MetaCollection {
 
 
 
-    function fold($row) {
-        $args = [];
+    function fold($row, $map) {
         $collections = $this->getAllInputCollections();
         foreach ($collections as $col) {
             $alias = $col->alias;
             $fields = $col->data_fields;
             $slug = $col->slug;
-            if ($slug) $args[$slug] = [];
+            if ($slug) $slug .= "-";
         
             foreach ($fields as $fslug=>$field) {
-                if ($slug) $args[$slug][$fslug] = $field->export(array_shift($row));
-                else $args[$fslug] = $field->export(array_shift($row));
+                $map->addCell($slug . $fslug, $field, array_shift($row));
             }
         }
-        return $args;
     }
 
 
