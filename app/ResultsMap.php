@@ -23,4 +23,8 @@ class ResultsMap {
         }
         return $args;
     }
+
+    function getCell($slug) {
+        return (isset($this->cells[$slug])) ? $this->cells[$slug] : null;
+    }
 }
