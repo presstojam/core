@@ -152,6 +152,7 @@ class MetaCollection {
         foreach ($this->children as $slug=>$col) {
             $map = new ResultsMap();
 
+            //check we don't have a null row
             foreach ($col->data_fields as $fslug=>$field) {
                 $map->addCell($fslug, $field, array_shift($row));
             }
@@ -164,8 +165,10 @@ class MetaCollection {
             }
 
             $map->addChildren($col->foldChildren($row));
-            
-            $results[$slug] = [$map->getKey()->value=>$map];
+
+            $key = $map->getKey()->value;
+            if ($key !== null) 
+                $results[$slug] = [$map->getKey()->value=>$map];
         }
         return $results;
     }
