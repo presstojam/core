@@ -150,7 +150,7 @@ class MetaCollection {
     function foldChildren($row) {
         $results=[];
         foreach ($this->children as $col) {
-            $map = new DataMap();
+            $map = new ResultsMap();
 
             foreach ($col->data_fields as $fslug=>$field) {
                 $map->addCell($fslug, $field, array_shift($row));

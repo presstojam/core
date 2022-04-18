@@ -231,7 +231,8 @@ class Model
                 $res = $stmt->execute($map->toArgs());
                 $data = $res->fetchAll(\PDO::FETCH_NUM);
                 foreach($data as $row) {
-                    $fmap = $meta->foldChildren($row);
+                    $fmap = new ResultsMap();
+                    $fmap->addChildren($meta->foldChildren($row));
                     $result->foldIn($fmap);
                 }
             }
