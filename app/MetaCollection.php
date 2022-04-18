@@ -152,11 +152,17 @@ class MetaCollection {
         }
 
         foreach ($this->references as $ref) {
-            $arr = array_merge($arr, $ref->getAsSchema());
+            $fields = $ref->getAsSchema();
+            foreach ($fields as $slug=>$field) {
+                $arr[$ref->slug . "-" . $slug] = $field;
+            }
         }
 
         if ($this->parent) {
-            $arr = array_merge($arr, $this->parent->getAsSchema());
+            $fields = $this->parent->getAsSchema();
+            foreach ($fields as $slug=>$field) {
+                $arr[$ref->slug . "-" . $slug] = $field;
+            }
         }
         return $arr;
         

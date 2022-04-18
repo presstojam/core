@@ -42,7 +42,7 @@ class DataMap {
     function toArgs() {
         $args=[];
         foreach($this->cells as $cell) {
-            $val = $cell->value;
+            $val = $cell->toArg();
             if (is_array($val)) $args=array_merge($args, $val);
             else $args[] = $val;
         }

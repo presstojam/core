@@ -31,11 +31,6 @@ class AssetCell extends MetaCell {
         $this->not_contains = $not_contains;
     }
 
-
-    function convertKeyName($val, $id) {
-        return str_replace("%id", $id, $val);
-    }
-
    
     function tempLocation() {
         return tempnam($this->tmp_file_dir);
@@ -44,24 +39,33 @@ class AssetCell extends MetaCell {
    
     function map($val) {
         if (is_array($val)) {
-            $extension = "";
             if (isset($val['name'])) {
-                $extension = \pathinfo($val['name'], \PATHINFO_EXTENSION);
+                $val['ext'] = \pathinfo($val['name'], \PATHINFO_EXTENSION);
+                $this->value = $val['name'];
             }
-            $val['name'] = str_replace("%ext", $extension, $this->name_template);
         } 
         return $val;
     }
 
+    function toArg($val) {
+        if (!isset($val['name'])) {
+            $key = $this->uniqueKey($val['ext']);
+            $this->writeFile($key, ""); //reserve the bucket space
+            return $key;
+        } else {
+            return $val['name'];
+        }
+    }
+ 
 
     function validate($value) {
         $size = (isset($value['size'])) ? $value['size'] : 0;
-        $name = (isset($value['name'])) ? $value['name'] : "";
+        $ext = (isset($value['ext'])) ? $value['ext'] : "";
         $rule = $this->validateSize($size);
         if ($rule != ValidationRules::OK) {
             return $rule;
         }
-        $rule = $this->validateValue($name);
+        $rule = $this->validateValue($ext);
         return $rule;
     }
 
@@ -123,16 +127,10 @@ class AssetCell extends MetaCell {
         return $key;
     }
 
-
     public function view($key) {
         //can set header from extension
         $writer = \PressToJamCore\Configs\Factory::createS3Writer();
         return $writer->get($key);
-    }
-
-
-    function export($value, $id = null) {
-        return $this->convertKeyName($value, $id);
     }
 
 

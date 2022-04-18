@@ -52,7 +52,6 @@ class Route {
     protected $siblings = [];
     protected $fields = [];
     protected $to;
-    protected $refs = [];
     protected $meta;
     protected $state;
     protected $dictionary;
@@ -98,12 +97,6 @@ class Route {
             "siblings"=>$this->siblings,
             "actions"=>$this->actions
         ];
-
-        if ($this->meta->to) $arr["to"] = $this->to->toArr();
-        $arr["refs"] = [];
-        foreach($this->refs as $slug=>$ref) {
-            $arr["refs"][$slug] = $ref->toArr();
-        }
 
         return $arr;
     }

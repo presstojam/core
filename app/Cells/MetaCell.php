@@ -67,6 +67,10 @@ class MetaCell {
         return $val;
     }
 
+    function toArg($val) {
+        return $val;
+    }
+
 
     function toSchema() {
         $arr=[];
