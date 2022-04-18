@@ -10,6 +10,11 @@ class FlagCell extends MetaCell {
     protected $circular = false;
 
 
+    function __construct() {
+        parent::__construct();
+        $this->default = false;
+    }
+
 
     function setType($data) {
         if (is_array($data)) {

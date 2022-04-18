@@ -6,6 +6,11 @@ class NumberCell extends MetaCell {
 
     protected $round = 0;
 
+    function __construct() {
+        parent::__construct();
+        $this->default = 0;
+    }
+
     function __get($name) {
         if (property_exists($this, $name)) return $this->$name;
         else return null;

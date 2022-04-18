@@ -25,6 +25,10 @@ class MetaCell {
     protected $summary = false;
 
 
+    function __construct() {
+        
+    }
+
     function __set($name, $value) {
         if (property_exists($this, $name)) $this->$name = $value;
     }

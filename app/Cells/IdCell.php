@@ -8,6 +8,11 @@ class IdCell extends MetaCell {
     protected $is_parent = false;
     protected $reference = null;
     protected $is_circular = false;
+
+    function __construct() {
+        parent::__construct();
+        $this->default = 0;
+    }
     
 
     function setValidation($min, $max) {
