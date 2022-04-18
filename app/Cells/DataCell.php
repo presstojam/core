@@ -66,6 +66,10 @@ class DataCell {
         return $this->meta_field->validate($this->value);
     }
 
+
+    function toArg() {
+        return $this->meta_field->toArg($this->value);
+    }
   
 
     function schema() {
