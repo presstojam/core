@@ -149,7 +149,7 @@ class MetaCollection {
 
     function foldChildren($row) {
         $results=[];
-        foreach ($this->children as $col) {
+        foreach ($this->children as $slug=>$col) {
             $map = new ResultsMap();
 
             foreach ($col->data_fields as $fslug=>$field) {
@@ -165,7 +165,7 @@ class MetaCollection {
 
             $map->addChildren($col->foldChildren($row));
             
-            $results[] = $map;
+            $results[$slug] = [$map->getKey()->value=>$map];
         }
         return $results;
     }
