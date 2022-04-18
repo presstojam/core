@@ -145,6 +145,19 @@ class MetaCollection {
     }
 
 
+    function foldChildren($row, $map) {
+        $collections = $this->getAllOutputCollections();
+        foreach ($collections as $col) {
+            $alias = $col->alias;
+            $fields = $col->data_fields;
+          
+            foreach ($fields as $fslug=>$field) {
+                $map->addCell($fslug, $field, array_shift($row));
+            }
+        }
+    }
+
+
     function getAsSchema() {
         $arr=[];
         foreach($this->data_fields as $slug=>$field) {

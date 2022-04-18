@@ -30,52 +30,7 @@ class StmtBuilder {
 
     }
 
-    function convertToSQLPieces($meta) {
-        $this->from = $this->table . " " . $this->alias;
-        $stmt->from .= " " . implode(" ", $this->buildJoin());
-        $collections = $this->getAllInputCollections();
-
-        foreach($collections as $col) {
-            $stmt->tables[$col->alias] = $col->table;
-            $data_fields = $col->data_fields;
-        
-            foreach($data_fields as $field) {
-                $stmt->cols[] = $col->alias . "." . $field->name;
-            }
-
-            $filter_fields = $col->filter_fields;
-            foreach($filter_fields as $field) {
-                $stmt->filter_cols[] =  $field->mapToStmtFilter($col->alias . "." . $field->name);
-            }
-        }
-
-        $stmt->limit = $this->limit;
-        foreach($this->sort as $part) {
-            $stmt->order_cols[] = $part;
-        }
-        return $stmt;
-    }
-
-
-    function convertToSQLChildrenPieces() {
-        $stmt = new StmtPieces();
-        $stmt->from = $this->table . " " . $this->alias;
-        $collections = $this->getAllOutputCollections();
-        $joins = [];
-
-        foreach($collections as $col) {
-            $stmt->tables[$col->alias] = $col->table;
-            $data_fields = $col->data_fields;
-            $joins=array_merge($joins, $col->buildChildrenJoins());
-        
-            foreach($data_fields as $field) {
-                $stmt->cols[] = $this->alias . "." . $field->name;
-            }
-        }
-        $stmt->from .= " " .implode(" ", $joins);
-    }
-
-
+    
     function buildFilter() {
         $sql = "";
         $filter_cols = [];

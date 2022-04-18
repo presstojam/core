@@ -207,15 +207,35 @@ class Model
     }
 
 
-    function loadChildren($id, $meta) {
+    function loadChildren($results, $meta) {
         $children = $meta->children;
-        $results_map = [];
-        foreach($children as $slug=>$child) {
-            $child->activateParent();
-            $map = $this->createMap($child, ["__key"=>$id]);
-            $results_map[$slug] = $this->retrieve($child, $map);
+               
+        $collections = $meta->getAllOutputCollections();
+        foreach($collections as $col) {
+            $col->activate();
         }
-        return $results_map;
+
+        $stmt_builder = new StmtBuilder($meta);
+        $sql =$stmt_builder->selectChildren();
+
+        $stmt = $this->getSQL($sql);
+
+        if (!is_array($results)) $results = [$results];
+
+        if (is_array($results)) {
+            foreach($results as $result) {
+                $map = $this->createMap($child, ["__key"=>$result->getKey()->value]);
+                $res = $stmt->execute($map->toArgs());
+                $data = $res->fetchAll(\PDO::FETCH_NUM);
+                $results = [];
+                foreach($data as $row) {
+                    $map = new ResultsMap();
+                    $meta->foldChildren($row, $meta);
+                    $results[$map->getKey()->value] = $map;
+                }
+                $results->addChildren($results);
+            }
+        }
     }
 
     function export($results) {
