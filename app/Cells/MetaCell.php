@@ -19,7 +19,7 @@ class MetaCell {
     protected $contains = "";
     protected $not_contains = "";
     protected $name;
-    protected $type;
+    protected $type = CellValueType::fixed;
     protected $default;
     
     protected $summary = false;

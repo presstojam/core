@@ -17,6 +17,8 @@ class MetaCollection {
     protected $limit;
     protected $group;
     protected $sort = [];
+    protected $primary_key_field = "";
+    protected $parent_key_field = "";
     
     static protected $num = 1;
     
@@ -145,16 +147,27 @@ class MetaCollection {
     }
 
 
-    function foldChildren($row, $map) {
-        $collections = $this->getAllOutputCollections();
-        foreach ($collections as $col) {
-            $alias = $col->alias;
-            $fields = $col->data_fields;
-          
-            foreach ($fields as $fslug=>$field) {
+    function foldChildren($row) {
+        $results=[];
+        foreach ($this->children as $col) {
+            $map = new DataMap();
+
+            foreach ($col->data_fields as $fslug=>$field) {
                 $map->addCell($fslug, $field, array_shift($row));
             }
+
+            foreach($this->references as $ref) {
+                $slug = $ref->slug;
+                foreach ($ref->data_fields as $fslug=>$field) {
+                    $map->addCell($slug . "_" . $fslug, $field, array_shift($row));
+                }
+            }
+
+            $map->addChildren($col->foldChildren($row));
+            
+            $results[] = $map;
         }
+        return $results;
     }
 
 
@@ -178,7 +191,16 @@ class MetaCollection {
             }
         }
         return $arr;
-        
     }
+
+    function getPrimaryKey() {
+        return $this->primary_key_field;
+    }
+
+
+    function getParentKey() {
+        return $this->parent_key_field;
+    }
+
 
 }

@@ -22,6 +22,7 @@ class DataMap {
         foreach($this->cells as $slug=>$cell) {
             if ($cell->meta_field->is_primary OR $cell->meta_field->is_parent) {
                 $cell->value = $id;
+                $cell->setType();
             }        
         }
     }
@@ -70,4 +71,6 @@ class DataMap {
     function getCell($slug) {
         return (isset($this->cells[$slug])) ? $this->cells[$slug] : null;
     }
+
+    
 }

@@ -208,6 +208,9 @@ class Model
 
 
     function loadChildren($results, $meta) {
+        $meta->data_fields = [];
+        $meta->filter_fields = [];
+        $meta->activatePrimary();
         $children = $meta->children;
                
         $collections = $meta->getAllOutputCollections();
@@ -227,13 +230,10 @@ class Model
                 $map = $this->createMap($meta, ["__key"=>$result->getKey()->value]);
                 $res = $stmt->execute($map->toArgs());
                 $data = $res->fetchAll(\PDO::FETCH_NUM);
-                $results = [];
                 foreach($data as $row) {
-                    $map = new ResultsMap();
-                    $meta->foldChildren($row, $meta);
-                    $results[$map->getKey()->value] = $map;
+                    $fmap = $meta->foldChildren($row);
+                    $result->foldIn($fmap);
                 }
-                $result->addChildren($results);
             }
         }
     }

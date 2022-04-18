@@ -71,4 +71,16 @@ class ResultsMap {
             return $this->cells[$this->parent_key];
         }
     }
+
+    function foldIn($data_map) {
+        foreach($data_map->children as $slug=>$arr) {
+            if (!isset($this->children[$slug])) $this->children[$slug] = $arr;
+            else {
+                foreach($arr as $id=>$map) {
+                    if (isset($this->children[$slug][$id])) $this->children[$slug][$id]->foldIn($map);
+                    else $this->children[$slug][$id] = $map;
+                }
+            }
+        }
+    }
 }
