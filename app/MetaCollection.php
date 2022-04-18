@@ -80,7 +80,7 @@ class MetaCollection {
         foreach($this->children as $child) {
             $arr[] = $child;
             $arr=array_merge($arr, $child->getAllReferences());
-            $arr=array_merge($arr, $child->getAllChildren());
+            $arr=array_merge($arr, $child->getAllOutputCollections());
         }
         return $arr;
     }
