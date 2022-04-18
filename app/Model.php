@@ -224,7 +224,7 @@ class Model
 
         if (is_array($results)) {
             foreach($results as $result) {
-                $map = $this->createMap($child, ["__key"=>$result->getKey()->value]);
+                $map = $this->createMap($meta, ["__key"=>$result->getKey()->value]);
                 $res = $stmt->execute($map->toArgs());
                 $data = $res->fetchAll(\PDO::FETCH_NUM);
                 $results = [];
@@ -233,7 +233,7 @@ class Model
                     $meta->foldChildren($row, $meta);
                     $results[$map->getKey()->value] = $map;
                 }
-                $results->addChildren($results);
+                $result->addChildren($results);
             }
         }
     }

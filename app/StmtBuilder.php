@@ -122,6 +122,7 @@ class StmtBuilder {
             $filter_cols[] =  $field->mapToStmtFilter($this->meta->alias . "." . $field->name);
         }
         $sql .= " WHERE " . implode(" AND ", $filter_cols);
+        return $sql;
     }
 
 
