@@ -82,7 +82,7 @@ class IdCell extends MetaCell {
             $arr["is_parent"] = true;
         }
         if ($this->reference) {
-            $arr["reference"] = $this->reference;
+            $arr["reference"] = true;
         }
         if ($this->is_circular) {
             $arr["circular"] = true;

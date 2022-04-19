@@ -53,6 +53,10 @@ class ResultsMap {
         return $args;
     }
 
+    function getCells() {
+        return $this->cells;
+    }
+    
 
     function getCell($slug) {
         return (isset($this->cells[$slug])) ? $this->cells[$slug] : null;
