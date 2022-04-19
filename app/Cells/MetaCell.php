@@ -21,6 +21,7 @@ class MetaCell {
     protected $name;
     protected $type = CellValueType::fixed;
     protected $default;
+    protected $label;
     
     protected $summary = false;
 
@@ -78,9 +79,17 @@ class MetaCell {
 
     function toSchema() {
         $arr=[];
-        $arr["validation"] = ["min"=>$this->min, "max"=>$this->max, "contains"=>$this->contains, "notcontains"=>$this->notcontains];
+        $arr["validation"] = [
+            "min"=>$this->min, 
+            "max"=>$this->max, 
+            "contains"=>$this->contains, 
+            "notcontains"=>$this->notcontains,
+            "label"=>$this->label,
+            "title"=>$this->title
+        ];
         if ($this->default) $arr["default"] = $this->default;
         if ($this->summary) $arr["summary"] = true;
+
         return $arr;
     }
  
