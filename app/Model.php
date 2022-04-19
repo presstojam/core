@@ -181,6 +181,7 @@ class Model
             }
 
             if ($slug) $slug .= "-";
+            
             if ($include_data) {
                 $fields = $col->data_fields;
                 foreach ($fields as $fslug=>$field) {
