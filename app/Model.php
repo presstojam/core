@@ -179,18 +179,20 @@ class Model
             if ($slug) {
                 $cdata = (!isset($cdata[$slug])) ? [] : $cdata[$slug];
             }
+
+            if ($slug) $slug .= "-";
             if ($include_data) {
                 $fields = $col->data_fields;
                 foreach ($fields as $fslug=>$field) {
                     $val = (isset($cdata[$fslug])) ? $cdata[$fslug] : null;
-                    $map->addCell($fslug, $field, $val);
+                    $map->addCell($slug . $fslug, $field, $val);
                 }
             }
             
             $fields = $col->filter_fields;
             foreach ($fields as $fslug=>$field) {
                 $val = (isset($cdata[$fslug])) ? $cdata[$fslug] : null;
-                $map->addCell($fslug, $field, $val);
+                $map->addCell($slug . $fslug, $field, $val);
             }
 
             if (isset($data["__key"])) $map->setKey($data["__key"]);
