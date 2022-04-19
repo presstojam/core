@@ -83,10 +83,10 @@ class MetaCell {
             "min"=>$this->min, 
             "max"=>$this->max, 
             "contains"=>$this->contains, 
-            "notcontains"=>$this->notcontains,
-            "label"=>$this->label,
-            "title"=>$this->title
+            "notcontains"=>$this->notcontains
         ];
+        $arr["label"] = $this->label;
+        $arr["title"] = $this->label;
         if ($this->default) $arr["default"] = $this->default;
         if ($this->summary) $arr["summary"] = true;
 
