@@ -163,7 +163,11 @@ class StmtBuilder {
 
         
         $data_cols = [];
-        $cols = $this->getDataCols();
+        $select_cols = [];
+        foreach ($this->meta->data_fields as $field) {
+            $data_cols[] = $field->name;
+            $select_cols[] = $col->alias . "." . $field->name;
+        }
         
         $filter_cols = [];
         $cols = $this->meta->getAllInputCollections();
@@ -175,7 +179,7 @@ class StmtBuilder {
         }
 
         $sql = "INSERT INTO " . $to_table . "(" . join(", ", $data_cols) . ") SELECT ";
-        $sql .= join(", ", $data_cols) . " FROM " . $this->meta->table . " WHERE ";
+        $sql .= join(", ", $select_cols) . " FROM " . $this->meta->table . " " . $this->meta->alias . " WHERE ";
         $sql .= implode(" AND ", $filter_cols);
         
         return $sql;
