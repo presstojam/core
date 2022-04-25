@@ -140,7 +140,7 @@ class StmtBuilder {
             $data_cols[] = $this->meta->alias . "." . $field->name . " = ?";
         }
 
-        $sql = "UPDATE " . $this->meta->table . " " . $this->meta->buildJoin() . " SET " . implode(",", $data_cols);
+        $sql = "UPDATE " . $this->meta->table . " " . $this->meta->alias . " ". $this->meta->buildJoin() . " SET " . implode(",", $data_cols);
 
         $filter_fields = $this->meta->filter_fields;
         foreach ($filter_fields as $field) {
