@@ -10,6 +10,10 @@ class DataMap {
 
     }
 
+    function __get($slug) {
+        if (isset($cells[$slug])) return $cells[$slug];
+    }
+
 
     function addCell($slug, $meta, $value = null) {
         $this->cells[$slug] = new Cells\DataCell($meta);

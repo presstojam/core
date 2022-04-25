@@ -58,6 +58,7 @@ class Route {
     protected $request;
     protected $accept = [];
     protected $actions = [];
+    protected $back;
 
     function __construct($request, $accept) {
         $this->request = $request;
@@ -98,6 +99,7 @@ class Route {
             "actions"=>$this->actions
         ];
 
+        if ($this->back) $arr["back"] = $this->back;
         return $arr;
     }
 
