@@ -147,7 +147,35 @@ class StmtBuilder {
             $filter_cols[] =  $field->mapToStmtFilter($field->name);
         }
 
-        $sql .= " WHERE " . implode(", ", $filter_cols);
+        $sql .= " WHERE " . implode(" AND ", $filter_cols);
+        return $sql;
+    }
+
+
+    function copy($to_table) {
+        if (count($this->meta->filter_fields) == 0) {
+            throw new \Error("Can't copy without a filter field");
+        }
+
+        if (count($this->meta->data_fields) == 0) {
+            throw new \Error("Copy error, must have cols to copy");
+        }
+
+        
+        $data_cols = [];
+        foreach($this->meta->data_fields as $field) {
+            $data_cols[] = $field->name;
+        }
+
+        $filter_fields = $this->meta->filter_fields;
+        foreach ($filter_fields as $field) {
+            $filter_cols[] =  $field->mapToStmtFilter($field->name);
+        }
+
+        $sql = "INSERT INTO " . $to_table . "(" . join(", ", $data_cols) . ") SELECT ";
+        $sql .= join(", ", $data_cols) . " FROM " . $this->meta->table . " WHERE ";
+        $sql .= implode(" AND ", $filter_cols);
+        
         return $sql;
     }
 
