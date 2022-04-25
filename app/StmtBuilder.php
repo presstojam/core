@@ -137,14 +137,14 @@ class StmtBuilder {
 
         $data_cols = [];
         foreach($this->meta->data_fields as $field) {
-            $data_cols[] = $field->name . " = ?";
+            $data_cols[] = $this->meta->alias . "." . $field->name . " = ?";
         }
 
         $sql = "UPDATE " . $this->meta->table . " " . $this->meta->buildJoin() . " SET " . implode(",", $data_cols);
 
         $filter_fields = $this->meta->filter_fields;
         foreach ($filter_fields as $field) {
-            $filter_cols[] =  $field->mapToStmtFilter($field->name);
+            $filter_cols[] =  $field->mapToStmtFilter($this->meta->alias . "." . $field->name);
         }
 
         $sql .= " WHERE " . implode(" AND ", $filter_cols);
@@ -163,13 +163,15 @@ class StmtBuilder {
 
         
         $data_cols = [];
-        foreach($this->meta->data_fields as $field) {
-            $data_cols[] = $field->name;
-        }
-
-        $filter_fields = $this->meta->filter_fields;
-        foreach ($filter_fields as $field) {
-            $filter_cols[] =  $field->mapToStmtFilter($field->name);
+        $cols = $this->getDataCols();
+        
+        $filter_cols = [];
+        $cols = $this->meta->getAllInputCollections();
+        foreach ($cols as $col) {
+            $filter_fields = $col->filter_fields;
+            foreach ($filter_fields as $field) {
+                $filter_cols[] =  $field->mapToStmtFilter($col->alias . "." . $field->name);
+            }
         }
 
         $sql = "INSERT INTO " . $to_table . "(" . join(", ", $data_cols) . ") SELECT ";
