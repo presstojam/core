@@ -166,7 +166,7 @@ class StmtBuilder {
         $select_cols = [];
         foreach ($this->meta->data_fields as $field) {
             $data_cols[] = $field->name;
-            $select_cols[] = $col->alias . "." . $field->name;
+            $select_cols[] = $this->meta->alias . "." . $field->name;
         }
         
         $filter_cols = [];
