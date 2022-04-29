@@ -59,8 +59,11 @@ class Request {
         $arr=[];
         foreach($data as $key=>$val) {
             if (strpos($key, "__") === 0) continue;
-            $key = str_replace("-", "_", $key);
-            if (is_array($val)) {
+            if (strpos($key, "/") !== false) {
+                $exp = explode("/", $key);
+                if (!isset($arr[$exp[0]])) $arr[$exp[0]] = [];
+                $arr[$exp[0]][$exp[1]] = $val;
+            } else if (is_array($val)) {
                 $arr[$key] = $this->convertKeys($val);
             } else {
                 $arr[$key] = $val;
