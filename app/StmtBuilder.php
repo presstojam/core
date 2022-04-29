@@ -228,7 +228,7 @@ class StmtBuilder {
     }
 
     function count() {
-        $sql = "SELECT count(1) AS 'count' FROM " . $this->meta->table . " ";
+        $sql = "SELECT count(" . $this->meta->alias . "." . $this->meta->primary_key_field . ") AS 'count' FROM " . $this->meta->table . " " . $this->meta->alias . " ";
         $sql .= $this->meta->buildJoin() . " ";
         $sql .= $this->buildFilter();
         return $sql;
