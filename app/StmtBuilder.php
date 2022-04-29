@@ -47,7 +47,7 @@ class StmtBuilder {
         }
 
         if (count($this->meta->sort) > 0) {
-            $sql .= " ORDER BY " . implode(", ", $this-meta->sort) . " ";
+            $sql .= " ORDER BY " . implode(", ", $this->meta->sort) . " ";
         } 
 
         if ($this->meta->limit) {
