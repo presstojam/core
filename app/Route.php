@@ -107,6 +107,11 @@ class Route {
     function toResponse() {
 
         $this->fields = $this->meta->getAsSchema();
+        $inputs = $this->meta->getAllInputCollections(false);
+        foreach($inputs as $input) {
+            $this->fields[$input->slug] = $input->getAsSchema();
+        }
+
         $this->dictionary->applyToRoute($this, $this->state);
 
         $response = new Response();

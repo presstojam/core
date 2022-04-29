@@ -30,7 +30,7 @@ class Request {
         }
         if (isset($request['__order'])) $this->order = $this->convertKeys($request['__order']);
         if (isset($request['__group'])) $this->group = $this->convertKeys($request['__group']);
-        if (isset($request['__fields'])) $this->fields = $this->convertKeys($request['__fields']);
+        if (isset($request['__fields'])) $this->fields = $this->convertVals($request['__fields']);
         if (isset($request['__limit'])) $this->limit = $request['__limit'];
         if (isset($request['__page'])) $this->page = $request['__page'];
         if (isset($request['__raw'])) $this->raw = $request['__raw'];
@@ -67,6 +67,20 @@ class Request {
                 $arr[$key] = $this->convertKeys($val);
             } else {
                 $arr[$key] = $val;
+            }
+        }
+        return $arr;
+    }
+
+    function convertVals($data) {
+        $arr=[];
+        foreach($data as $val) {
+            if (strpos($val, "/") !== false) {
+                $exp = explode("/", $val);
+                if (!isset($arr[$exp[0]])) $arr[$exp[0]] = [];
+                $arr[$exp[0]][] = $exp[1];
+            } else {
+                $arr[] = $val;
             }
         }
         return $arr;

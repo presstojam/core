@@ -67,8 +67,9 @@ class MetaCollection {
     }
 
 
-    function getAllInputCollections() {
-        $arr = [$this];
+    function getAllInputCollections($include_self = true) {
+        $arr = [];
+        if ($include_self) $arr[] = $this;
         $arr=array_merge($arr, $this->getAllReferences());
         if ($this->parent) {
             $arr=array_merge($arr, $this->parent->getAllInputCollections());
@@ -190,7 +191,7 @@ class MetaCollection {
         if ($this->parent) {
             $fields = $this->parent->getAsSchema();
             foreach ($fields as $slug=>$field) {
-                $arr[$ref->slug . "-" . $slug] = $field;
+                $arr[$this->parent->slug . "-" . $slug] = $field;
             }
         }
         return $arr;
