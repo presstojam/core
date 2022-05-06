@@ -4,67 +4,72 @@ namespace PressToJamCore\Configs;
 
 class Factory {
 
-    static function createS3Writer() {
-        $conf = GlobalConfigs::s();
-        $config = $conf->getConfig("awss3");
+    static function createS3Writer($config = null) {
+        if (!$config) {
+            $config = new AWS();
+            $config->resource = "presstojamassets";
+            $config->prefix = trim($_ENV['s3bucket'], "/") . "/";
+            if (isset($_ENV['s3path'])) {
+                $config->prefix .= rtrim($_ENV['s3path'], "/") . "/";
+            }
+        }
         return new \PressToJamCore\Services\AmazonS3Host($config);
     }
 
-    static function createPublicS3Writer() {
-        $conf = GlobalConfigs::s();
-        $config = $conf->getConfig("awss3public");
-        return new \PressToJamCore\Services\AmazonS3Host($config);
-    }
 
-
-    static function createSQSHandler() {
-        $conf = GlobalConfigs::s();
-        $config = $conf->getConfig("awssqs");
+    static function createSQSHandler($config = null) {
+        if (!$config) {
+            $config = new AWS();
+            $config->resource = $_ENV['sqsarn'];
+        }
         return new \PressToJamCore\Services\SQSHandler($config);
     }
 
 
-    static function createCloudFrontManager() {
-        $conf = GlobalConfigs::s();
-        $config = $conf->getConfig("awscloudfront");
+    static function createCloudFrontManager($config = null) {
+        if (!$config) {
+            $config = new AWS();
+            $config->resource = $_ENV['cfdistid'];
+        }
         return new \PressToJamCore\Services\CloudFrontManager($config);
     }
 
 
-    static function createJWT() {
-        $conf = GlobalConfigs::s();
-        $jwt = $conf->getConfig("jwt");
-        return new \PressToJamCore\JWTToken($jwt);
+    static function createJWT($config = null) {
+        if (!$config) {
+            $config = new JWT();
+            $config->secret = $_ENV['jwtkey'];
+        }
+        return new \PressToJamCore\JWTToken($config);
     }
 
 
-    static function createPDO() {
-        $conf = GlobalConfigs::s();
-        $configs = $conf->getConfig("pdo");
+    static function createPDO($config = null) {
+        if (!$config) { 
+            $config = new PDO();
+            $config->host = $_ENV['dbhost'];
+            $config->name = $_ENV['dbname'];
+            $config->user = $_ENV['dbuser'];
+            $config->pass = $_ENV['dbpass'];
+            $config->port = $_ENV['dbport'];
+        }
        
-        $dsn = 'mysql:dbname=' .$configs->name . ';host=' . $configs->host;
-        if ($configs->port) $dsn .= ';port=' . $configs->port;
+        $dsn = 'mysql:dbname=' .$config->name . ';host=' . $config->host;
+        if ($config->port) $dsn .= ';port=' . $config->port;
         $dsn .= ';charset=utf8';
 
         $options = [];
-        if ($configs->cert) {
+        if ($config->cert) {
             $options = array(
                 \PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8',
                 \PDO::MYSQL_ATTR_SSL_CA => $configs->cert,
                 \PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false,
             );
         }
-        $pdo = new \PDO($dsn, $configs->user, $configs->pass, $options);
+        $pdo = new \PDO($dsn, $config->user, $config->pass, $options);
         $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         return $pdo;
     }
 
-
-    static function getUser() {
-        $conf = GlobalConfigs::s();
-        $configs = $conf->getConfigs();
-        if (isset($configs["user"])) return $configs["user"];
-        else return null;
-    }
 
 }

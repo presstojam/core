@@ -1,108 +1,134 @@
 <?php
 namespace PressToJamCore;
 
-class UserProfile {
-    private $user = "public";
-    private $id = 0;
-    private $token_expired = false;
-    private $lang = null;
+use \Dflydev\FigCookies\FigRequestCookies;
+use \Dflydev\FigCookies\FigResponseCookies;
 
-    private static $instance = null;
-  
-    private function __construct()
+
+class UserProfile {
+    protected $user = "public";
+    protected $id = 0;
+    protected $profile = null;
+    protected $lang = null;
+    protected $permissions = [];
+    protected $routes = [];
+    private $refresh_minutes = 86400;
+    private $auth_minutes = 15;
+
+
+    function __construct()
     {
       // The expensive process (e.g.,db connection) goes here.
-      $lang = new \PressToJam\Dictionary\Languages();
-      $this->lang = $lang->getDefault();
+        $lang = new \PressToJam\Dictionary\Languages();
+        $this->lang = $lang->getDefault();
     }
 
-    static function s() {
-        if (self::$instance == null) {
-            self::$instance = new UserProfile();
-        }
-        return self::$instance;
-    }
 
     function __set($key, $value) {
-        if ($key == "user" OR $key == "id") $this->$key = $value;
+        if (property_exists($this, $key)) $this->$key = $value;
     }
 
     function __get($key) {
-        if ($key == "user" OR $key == "id") return $this->$key;
+        if (property_exists($this, $key)) return $this->$key;
     }
 
 
-    function validateUser() {
-        //check if a default user has been set
-        $user = Configs\Factory::getUser();
-        if ($user) {
-            $this->user = $user->user;
-            $this->id = $user->id;
-            $this->lang = $user->lang;
-            return $this->user;
-        }
+    function saveCookie($name, $value, $expires) {
+        return \Dflydev\FigCookies\SetCookie::create($name)
+        ->withValue($value)
+        ->withExpires($expires)
+        ->withPath('/')
+        ->withSecure(true)
+        ->withHttpOnly(true)
+        ->withSameSite(\Dflydev\FigCookies\Modifier\SameSite::none());
+    }
 
-        //otherwise check if set via cookie
-        if (isset($_COOKIE['api-auth'])) {
-            $token = Configs\Factory::createJWT();
-            $payload = $token->decode($_COOKIE['api-auth']);
-            if (!$payload) {
-                $this->token_expired = $token->isExpired();
-            } else {
-                $this->user = $payload->user;
-                $this->id = $payload->id;
-                $this->lang = $payload->lang;
-            }
-        } else if (isset($_COOKIE['api-refresh'])) {
-            $this->switchTokens();
+
+    function initFromPayload($palyoad) {
+        foreach($payload as $key=>$val) {
+            $this->$key = $val;
         }
     }
 
-    function save() {
-        $lifetime_minutes = 15;
-        $refresh_seconds = 86400; //24 hours - 60 * 60 * 24
+    function save($response) {
         $token = Configs\Factory::createJWT();
-        $access_token = $token->encode(array("user"=>$this->user, "id"=>$this->id, "lang"=>$this->lang), $lifetime_minutes);
-        $refresh_token = $token->encode(array("user"=>$this->user, "id"=>$this->id, "lang"=>$this->lang), $refresh_seconds);
-        $cookie_options =  array("path"=> "/",  "secure"=>true, "httponly"=>true, "samesite"=>"None");
-        $cookie_options["expires"] = time() + ($lifetime_minutes * 60);
-        setcookie("api-auth", $access_token, $cookie_options);
-        $cookie_options["expires"] = time() + $refresh_seconds;
-        //$cookie_options["path"] = "/core-switch-tokens";
-        setcookie("api-refresh", $refresh_token, $cookie_options);
+        $access_token = $token->encode($this->toPayload(), $this->auth_minutes);
+        $refresh_token = $token->encode($this->toPayload(), $this->refresh_minutes );
+      
+        FigResponseCookies::set(
+            $response, 
+            $this->saveCookie("api-auth", $access_token, time() + ($this->auth_minutes * 60))
+        );
+
+        FigResponseCookies::set(
+            $response, 
+            $this->saveCookie("api-refresh", $refresh_token, time() + ($this->refresh_minutes * 60))
+        );
     }
 
 
-    function switchTokens() {
-        $response = new Response();
+    function switchTokens($request) {
+        $refresh = FigRequestCookies::get($request, "api-refresh");
+        $auth = FigRequestCookies::get($request, "api-auth");
         $token = Configs\Factory::createJWT();
-        $payload = $token->decode($_COOKIE['api-refresh']);
+        $payload = $token->decode($refresh);
         if ($payload) {
-            $this->user = $payload->user;
-            $this->id = $payload->id;
-            $this->save();
+            $payload = $token->encode($payload, 15);
+            return $auth->withValue($payload)
+            ->withExpires(time() + ($this->auth_minutes * 60));
         } else {
             $this->logout();
         }
     }
 
 
-    function logout() {
-        $this->id = 0;
-        $this->user = "public";
-        $cookie_options =  array("expires"=>-1, "path"=> "/",  "secure"=>true, "httponly"=>true, "samesite"=>"None");
-        setcookie("api-auth", null, $cookie_options);
-        //$cookie_options["path"] = "/core-switch-tokens";
-        setcookie("api-refresh", null, $cookie_options);
+    function toPayload() {
+        return [
+            "user"=>$this->user, 
+            "id"=>$this->id, 
+            "lang"=>$this->lang, 
+            "profile"=>$this->profile
+        ];
     }
 
 
-    function getUser() {
-        return $this->user;
+    function getDictionary() {
+        
     }
 
 
-    function isExpired() {
-        return $this->token_expired;
+    function logout($response) {
+        FigResponseCookies::remove($response, "api-auth");
+        FigResponseCookies::remove($response, "api-refresh");
+    }
+
+
+    function validate($request) {
+        //check if a default user has been set
+        $auth = FigRequestCookies::get($request, "api-auth");
+        //otherwise check if set via cookie
+        if ($auth) {
+            $token = Configs\Factory::createJWT();
+            $payload = $token->decode($auth->getValue());
+            if (!$payload) {
+                echo "Token expired?";
+                throw "Token  expired";
+            } else {
+                $user->initFromPayload($payload);
+            }
+        } 
+    }
+
+  
+
+    function hasPermission($model, $state = null) {
+        if (!isset($this->permissions[$model])) return false;
+        else if ($state AND !in_array($state, $this->permissions[$model])) return false;
+        return true;
+    }
+    
+    
+    function getRoute($model, $state) {
+        return (!isset($this->routes[$model]) OR !isset($this->routes[$model][$state])) ? [] : $this->routes[$model][$state];
     }
 }

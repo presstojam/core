@@ -4,36 +4,36 @@ namespace PressToJamCore;
 
 class Hooks {
 
-	static private $calculated=array();
-    static private $actuators=array();
-    static private $calculated_assets=array();
-    static private $routes=array();
+	private $calculated=array();
+    private $actuators=array();
+    private $calculated_assets=array();
+    private $routes=array();
 	
 
 	function __construct() {
 	
 	}
 	
-	static function addCalculated($action, $callback)
+	function addCalculated($action, $callback)
 	{
        self::$calculated[$action] = $callback;
 	}
 
-    static function addActuators($action, $callback)
+    function addActuators($action, $callback)
 	{
         self::$actuators[$action] = $callback;
 	}
 
-    static function addCalculatedAssets($action, $callback)
+    function addCalculatedAssets($action, $callback)
 	{
         self::$calculated_assets[$action] = $callback;
 	}
 	
-    static function addRoute($route, $callback) {
+    function addRoute($route, $callback) {
         self::$routes[$route] = $callback;
     }
 	
-	static function doCalculate($action, $obj)
+	function doCalculate($action, $obj)
 	{
 		if (isset(self::$calculated[$action]))
 		{
@@ -42,7 +42,7 @@ class Hooks {
 		}
 	}
 
-    static function doActuator($action, $model, $orig = null)
+    function doActuator($action, $model, $orig = null)
 	{
 		if (isset(self::$actuators[$action]))
 		{
@@ -51,7 +51,7 @@ class Hooks {
 		}
 	}
 
-    static function doCalculateAsset($action, $obj) {
+    function doCalculateAsset($action, $obj) {
         if (isset(self::$calculated_assets[$action]))
 		{
             $func = self::$calculated_assets[$action];
@@ -59,7 +59,7 @@ class Hooks {
 		}
     }
 
-    static function runRoute($route, $user, $request) {
+    function runRoute($route, $user, $request) {
         if (isset(self::$routes[$route])) {
             return self::$routes[$route]($user, $request);
         } else {

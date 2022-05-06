@@ -44,6 +44,10 @@ class MetaCell {
         $this->type = CellValueType::fixed;
     }
 
+    function mapOutput($val) {
+        return $val;
+    }
+
     
     function validateSize($size) {
         if ($this->min !== null AND $size < $this->min) {

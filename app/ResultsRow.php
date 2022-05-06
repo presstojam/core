@@ -2,18 +2,40 @@
 
 namespace PressToJamCore;
 
-class ResultsMap {
+class ResultsRow {
 
     protected $cells = [];
     protected $children = [];
-    protected $key;
-    protected $parent_key;
+    protected $primary;
+    protected $parent;
     protected $history = [];
 
-    function __construct() {
+    function __construct($data_row, $row) {
 
+        foreach($data_row->response_fields as $slug=>$field) {
+            $this->cells[$slug] = $field;
+            $this->cells[$slug]->mapOutput(array_shift($row));
+        }
+
+
+        foreach($data_row->encrypted_filter_fields as $slug=>$field) {
+            $hash = array_shift($row);
+            if (!password_verify($field->value, $hash)) {
+                //now compare the password part of this
+                throw new \Exception("Incorrect username or password");
+            }
+        }
+        
+        $this->primary = $data_row->primary;
+        $this->parent = $data_row->parent;
     }
 
+
+    function __get($name) {
+        if(property_exists($this, $name)) return $this->$name;
+    }
+
+    
     function addChildren($children) {
         $this->children = $children;
     }
@@ -21,14 +43,6 @@ class ResultsMap {
 
     function addHistory($history) {
         $this->history[] = $history;
-    }
-
-
-    function addCell($slug, $meta, $value = null) {
-        $this->cells[$slug] = new Cells\DataCell($meta);
-        $this->cells[$slug]->value = $value;
-        if ($meta->is_primary) $this->key = $slug;
-        else if ($meta->is_parent) $this->parent_key = $slug;
     }
 
 

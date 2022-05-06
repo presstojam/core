@@ -7,6 +7,7 @@ class DataCell {
 
     protected $value = null;
     protected $meta_field = null;
+    protected $alias;
 
     function __construct($field) {
         $this->meta_field = $field;
@@ -20,7 +21,12 @@ class DataCell {
 
     function __get($name) {
         if (property_exists($this, $name)) return $this->$name;
-        else return null;
+        else return $this->meta_field->$name;
+    }
+
+    function __call($name, $args) {
+        if (!$args) $args=[$this->value];
+        return call_user_func_array([$this->meta_field, $name], $args);
     }
     
     function __toString() {
@@ -62,18 +68,8 @@ class DataCell {
         $this->value = null;
     }
 
-    function validate() {
-        return $this->meta_field->validate($this->value);
-    }
-
-
-    function toArg() {
-        return $this->meta_field->toArg($this->value);
-    }
-  
-
-    function schema() {
-        return $this->meta_field->schema();
+    function map($val) {
+        $this->value = $this->meta_field->map($val);
     }
 
  

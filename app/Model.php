@@ -5,13 +5,17 @@ namespace PressToJamCore;
 class Model
 {
     protected $pdo;
-    protected $request = array();
-    protected $is_secure = true;
-    protected $unique_checks=[];
+    protected $request;
+    protected $name;
+    protected $user;
+    protected $data;
+    protected $meta;
+    protected $results;
     
-    function __construct($pdo, $is_secure, $request = null) {
+    function __construct($name, $pdo, $user, $request = null) {
+        $this->name = $name;
         $this->pdo     = $pdo;
-        $this->is_secure = $is_secure;
+        $this->user = $user;
         $this->request  =  $request;
     }
 
@@ -29,185 +33,47 @@ class Model
     }
 
 
-    function create($meta, $maps) {
-        
-        $stmt_builder = new StmtBuilder($meta);
-        $sql =$stmt_builder->insert();
-
-        $stmt = $this->getSQL($sql);
-
-        if (is_array($maps)) {
-            $ids=[];
-            foreach($maps as $map) {
-                $stmt->execute($map->toArgs());
-                $ids[] = $this->pdo->lastInsertId();
-            }
-        } else {
-            $stmt->execute($maps->toArgs());
-            return $this->pdo->lastInsertId();
-        }
-                
+    function initMeta($method) {
+        $this->data = new DataRow($this->request); //set up things like order, to etc.
+        $this->data->mapRequestMeta($this->request);
+        $meta = "\PressToJam\MetaCollections\\" . str_replace('-', '', ucwords($this->name, "-"));
+        $this->meta = new $meta();
+        $this->meta->addFrom($this->data);
+        $this->meta->$method($this->data, $this->request);
     }
 
 
-    function update($meta, $maps) {
+    function exec($method) {
+        $this->data->mapRequestData($this->request);
+        $this->data->validate();
 
-        $stmt_builder = new StmtBuilder($meta);
-        $sql =$stmt_builder->update();
-      
-        $stmt = $this->getSQL($sql);
+        $stmt_builder = new StmtBuilder($this->data);
+        $sql = $stmt_builder->$method();
 
-        if (is_array($maps)) {
-            foreach($maps as $map) {
-                $stmt->execute($map->toArgs());
-            }
-        } else {
-            $stmt->execute($maps->toArgs());
-        }
+        $stmt = new PreparedStatement($this->pdo);
+        $stmt->prepare($sql);
+
+        return $stmt->execute($this->data->toArgs());
     }
 
 
-    function fetchRow($meta, $res) {
+    function getResult($res) {
         $data = $res->fetch(\PDO::FETCH_NUM);
-        $map = new ResultsMap();
-        $meta->fold($data, $map);
-        return $map;
+        $row = new ResultsRow($this->data, $data);
+        return $row->export();
     }
 
 
-    function fetchAll($meta, $res) {
+    function getResults($res) {
         $results = [];
         $data = $res->fetchAll(\PDO::FETCH_NUM);
         foreach($data as $row) {
-            $map = new ResultsMap();
-            $meta->fold($row, $map);
-            $results[$map->getKey()->value] = $map;
+            $map = new ResultsRow($this->data, $row);
+            $results[] = $map->export();
         }
         return $results;
     }
 
-
-    function retrieve($meta, $maps) {
-
-        $stmt_builder = new StmtBuilder($meta);
-        $sql =$stmt_builder->select();
-
-        $stmt = $this->getSQL($sql);
-
-        if (is_array($maps)) {
-            $results=[];
-            foreach($maps as $map) {
-                $res = $stmt->execute($map->toArgs());
-                $results = array_merge($results, $this->fetchAll($meta, $res));
-            }
-            return $results;
-        } else {
-            $res = $stmt->execute($maps->toArgs());
-            if ($meta->limit == 1) {
-                return $this->fetchRow($meta, $res);
-            } else {
-                return $this->fetchAll($meta, $res);
-            }
-        }
-    }
-
-
-    function retrieveHistory($meta, $maps) {
-
-        $stmt_builder = new StmtBuilder($meta);
-        $sql =$stmt_builder->archive();
-
-        $stmt = $this->getSQL($sql);
-
-        if (is_array($maps)) {
-            $results=[];
-            foreach($maps as $map) {
-                $res = $stmt->execute($map->toArgs());
-                $results = array_merge($results, $this->fetchAll($meta, $res));
-            }
-            return $results;
-        } else {
-            $res = $stmt->execute($maps->toArgs());
-            if ($meta->limit == 1) {
-                return $this->fetchRow($meta, $res);
-            } else {
-                return $this->fetchAll($meta, $res);
-            }
-        }
-    }
-
-
-    function delete($meta, $maps) {
-        if (is_array($maps)) $maps = [$maps];
-
-        $stmt_builder = new StmtBuilder($meta);
-        $sql =$stmt_builder->delete();
-      
-        $stmt = $this->getSQL($sql);
-
-        foreach ($maps as $map) {
-            $stmt->execute($map->toArgs());
-        }
-    }
-
-
-    function count($meta, $map) {
-        $stmt_builder = new StmtBuilder($meta);
-        $sql =$stmt_builder->count();
-        $stmt = $this->getSQL($sql);
-        $res = $stmt->execute($map->toArgs());
-        return $res->fetch(\PDO::FETCH_ASSOC);
-    }
-
-
-    function getSQL($sql) {
-        $stmt = new PreparedStatement($this->pdo);
-        //echo $sql;
-        //exit;
-        $stmt->prepare($sql);
-        return $stmt;
-    }
-
-
-    function createMap($meta, $data, $include_data = false) {
-        $map = new DataMap();
-
-        $collections = $meta->getAllInputCollections();
-        foreach($collections as $col) {
-            $slug = $col->slug;
-            $cdata = $data;
-            if ($slug) {
-                $cdata = (!isset($cdata[$slug])) ? [] : $cdata[$slug];
-            }
-
-            if ($slug) $slug .= "-";
-            
-            if ($include_data) {
-                $fields = $col->data_fields;
-                foreach ($fields as $fslug=>$field) {
-                    $val = (isset($cdata[$fslug])) ? $cdata[$fslug] : null;
-                    $map->addCell($slug . $fslug, $field, $val);
-                }
-            }
-            
-            $fields = $col->filter_fields;
-            foreach ($fields as $fslug=>$field) {
-                $val = (isset($cdata[$fslug])) ? $cdata[$fslug] : null;
-                $map->addCell($slug . $fslug, $field, $val);
-            }
-
-            if (isset($data["__key"])) $map->setKey($data["__key"]);
-        }
-
-       $map->validate();
-
-        foreach($this->unique_checks as $check) {
-            $func = $check;
-            $func($map);
-        }
-       
-        return $map;
-    }
 
 
     function loadChildren($results, $meta) {
@@ -242,17 +108,19 @@ class Model
         }
     }
 
-    function export($results) {
-        $exports;
-        if (is_array($results)) {
-            $exports=[];
-            foreach($results as $key=>$map) {
-                $exports[$key] = $map->export();
-            }
-        } else {
-            $exports = $results->export();
+    function getSchema() {
+        $fields=["data"=>[], "filter"=>[], "response"=>[]];
+        foreach($this->data->data_fields as $slug=>$field) {
+            $fields["data"][$slug] = $field->schema();
         }
-        return $exports;
-    }
 
+        foreach($this->data->filter_fields as $slug=>$field) {
+            $fields["filter"][$slug] = $field->schema();
+        }
+
+        foreach($this->data->response_fields as $slug=>$field) {
+            $fields["response"][$slug] = $field->schema();
+        }
+        return $fields;
+    }
 }

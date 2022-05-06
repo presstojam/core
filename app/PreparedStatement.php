@@ -41,6 +41,7 @@ class PreparedStatement {
 
  
     function execute($args=[]) {
+        var_dump($args);
         Response::setDebugData(["args"=>$args]);
         try {
             $this->stmt->execute($args);

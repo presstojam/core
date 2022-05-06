@@ -5,6 +5,7 @@ namespace PressToJamCore\Cells;
 class StringCell extends MetaCell {
 
     protected $encrypted = false;
+    protected $tests=[];
 
     function __construct() {
         parent::__construct();
@@ -94,6 +95,18 @@ class StringCell extends MetaCell {
         $arr["type"] = "String";
         if ($this->encrypted) $arr["encrypted"] = true;
         return $arr;
+    }
+
+    function getRandom($size, $salt = "", $num_only = false)
+	{
+		if ($num_only) $permitted_chars = "0123456789";
+		else $permitted_chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+		$code = $salt . substr(str_shuffle($permitted_chars), 0, $size);
+		return $code;
+	}
+
+    function registerUniqueTest($test) {
+        $this->tests[] = $test;
     }
 
 }
