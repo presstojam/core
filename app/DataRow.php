@@ -97,7 +97,7 @@ class DataRow {
     }
 
 
-    function validate() {
+    function validateFieldsIn() {
         foreach($this->data_fields as $field) {
             $field->validate();
         }
@@ -106,7 +106,13 @@ class DataRow {
             $field->validate();
         }
     }
-    
+
+
+    function validateRow() {
+
+    }
+
+
 
     function toArgs() {
         $args=[];

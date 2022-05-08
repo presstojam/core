@@ -9,22 +9,17 @@ class ResultsRow {
     protected $primary;
     protected $parent;
     protected $history = [];
+    protected $data_row;
 
     function __construct($data_row, $row) {
+
+        $this->data_row = $data_row;
 
         foreach($data_row->response_fields as $slug=>$field) {
             $this->cells[$slug] = $field;
             $this->cells[$slug]->mapOutput(array_shift($row));
         }
 
-
-        foreach($data_row->encrypted_filter_fields as $slug=>$field) {
-            $hash = array_shift($row);
-            if (!password_verify($field->value, $hash)) {
-                //now compare the password part of this
-                throw new \Exception("Incorrect username or password");
-            }
-        }
         
         $this->primary = $data_row->primary;
         $this->parent = $data_row->parent;
@@ -33,6 +28,17 @@ class ResultsRow {
 
     function __get($name) {
         if(property_exists($this, $name)) return $this->$name;
+    }
+
+
+    function validate() {
+        foreach($data_row->encrypted_filter_fields as $slug=>$field) {
+            $hash = array_shift($row);
+            if (!password_verify($field->value, $hash)) {
+                //now compare the password part of this
+                throw new \Exception("Incorrect username or password");
+            }
+        }
     }
 
     
@@ -90,8 +96,8 @@ class ResultsRow {
         }
     }
 
-    function foldIn($data_map) {
-        foreach($data_map->children as $slug=>$arr) {
+    function foldIn(array $ar) {
+        foreach($this->data_row->children as $slug=>$arr) {
             if (!isset($this->children[$slug])) $this->children[$slug] = $arr;
             else {
                 foreach($arr as $id=>$map) {

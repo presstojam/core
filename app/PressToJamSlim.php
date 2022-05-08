@@ -32,7 +32,7 @@ class PressToJamSlim {
         //set up all our services here
         $this->pdo = Configs\Factory::createPDO();
         $this->hooks = new Hooks(__DIR__ . "/custom/custom.php");
-        $this->user = new UserProfile();
+        $this->user = new UserProfile($request);
         $this->params = new Params();
 
     }
@@ -65,7 +65,10 @@ class PressToJamSlim {
 
 
     function validateRoute($request, $handler) {
-       /* $this->validateUser($request);
+
+        $class_name = "PressToJam\Profiles\\" . str_replace('-', '', ucwords($this->user->user, "-"));
+        $profile = new $class_name();
+        
         $routeContext = RouteContext::fromRequest($request);
         $route = $routeContext->getRoute();
 
@@ -77,10 +80,10 @@ class PressToJamSlim {
             $state = $method;
         }
 
-        if (!$this->user->hasPermission($model, $method, $state)) {
+        if (!$profile->hasPermission($model, $method, $state)) {
             throw new Error();
         }
-        */
+        
         return $handler->handle($request);
     }
 
@@ -150,7 +153,7 @@ class PressToJamSlim {
 
 
 
-    function addRoutes($container = []) {
+    function addRoutes() {
         $self = $this;
         
         $this->app->map(['GET','POST','PUT','DELETE'], '/data/{name}[/{state}]', function (Request $request, Response $response, $args) use ($self) {
@@ -197,6 +200,44 @@ class PressToJamSlim {
             $self->validateRoute($request, $response);
         });
 
+        $this->app->patch("/asset/{name}/{field}/{id}", function($request, $response, $args) use ($self) {
+            $name = $args["name"];
+            $field = $args["field"];
+            $id = $args["id"];
+
+            $model = new Model($name, $self->pdo, $self->user, $self->params);
+            $model->initMeta("asset");
+
+            $res = $model->exec("get");
+            $response = $model->getResult($res);
+            $s3writer = Configs\Factory::createS3Writer();
+            $s3writer->push($res["{{ field }}"]);
+        });
+
+        $this->app->get("/reference/{name}/{field}/{id}", function($request, $response, $args) use ($self) {
+
+        });
+
+        $this->app->map(["POST", "PUT"], "/import/{name}", function($request, $response, $args) use ($self) {
+
+        });
+
+        $this->app->map(["POST", "DELETE"], "/bulk/{name}", function($request, $response, $args) use ($self) {
+
+        });
+
+        if (isset($_ENV['DEVMODE'])) {
+            $this->app->get("/debugsql/{name}/{state}", function($request, $response, $args) use ($self) {
+
+            });
+        
+            $this->app->get("/debuguser
+            ", function($request, $response, $args) use ($self) {
+
+            });
+        
+        }
+
         $this->app->group("/core", function (RouteCollectorProxy $group) use ($self) {
             
             $group->get("/switch-tokens", function (Request $request, Response $response, $args) use ($self) {
@@ -221,6 +262,16 @@ class PressToJamSlim {
                 $self->user->lang = $params["__lang"];
                 $self->user->save($response);
                 return $response;
+            });
+
+            $app->get("/site-map", function($request, $response) use ($self) {
+                $class_name = "PressToJam\Profiles\\" . str_replace('-', '', ucwords($self->user->user, "-"));
+                $profile = new $class_name();
+                $func = "get";
+                if ($self->user->row) $func .= str_replace('-', '', ucwords($self->user->user, "-"));
+                $func .= "Nav";
+                $map = $profile->$func();
+                $response->getBody()->write($map);
             });
             
             $group->post("/logout", function (Request $request, Response $response, $args) use ($self) {

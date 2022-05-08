@@ -59,6 +59,7 @@ class Model
 
     function getResult($res) {
         $data = $res->fetch(\PDO::FETCH_NUM);
+        $this->data->validateOutput($data);
         $row = new ResultsRow($this->data, $data);
         return $row->export();
     }
@@ -68,6 +69,7 @@ class Model
         $results = [];
         $data = $res->fetchAll(\PDO::FETCH_NUM);
         foreach($data as $row) {
+            $this->data->validateOutput($row);
             $map = new ResultsRow($this->data, $row);
             $results[] = $map->export();
         }

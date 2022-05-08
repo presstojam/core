@@ -10,17 +10,12 @@ class UserProfile {
     protected $id = 0;
     protected $profile = null;
     protected $lang = null;
-    protected $permissions = [];
-    protected $routes = [];
     private $refresh_minutes = 86400;
     private $auth_minutes = 15;
 
 
     function __construct()
     {
-      // The expensive process (e.g.,db connection) goes here.
-        $lang = new \PressToJam\Dictionary\Languages();
-        $this->lang = $lang->getDefault();
     }
 
 
@@ -44,16 +39,18 @@ class UserProfile {
     }
 
 
-    function initFromPayload($palyoad) {
-        foreach($payload as $key=>$val) {
-            $this->$key = $val;
-        }
-    }
 
     function save($response) {
+        $payload = [
+            "user"=>$this->user, 
+            "id"=>$this->id, 
+            "lang"=>$this->lang, 
+            "profile"=>$this->profile
+        ];
+        
         $token = Configs\Factory::createJWT();
-        $access_token = $token->encode($this->toPayload(), $this->auth_minutes);
-        $refresh_token = $token->encode($this->toPayload(), $this->refresh_minutes );
+        $access_token = $token->encode($payload, $this->auth_minutes);
+        $refresh_token = $token->encode($payload, $this->refresh_minutes );
       
         FigResponseCookies::set(
             $response, 
@@ -82,18 +79,9 @@ class UserProfile {
     }
 
 
-    function toPayload() {
-        return [
-            "user"=>$this->user, 
-            "id"=>$this->id, 
-            "lang"=>$this->lang, 
-            "profile"=>$this->profile
-        ];
-    }
-
-
     function getDictionary() {
-        
+        $lang = new \PressToJam\Dictionary\Languages();
+        return $lang->getDictionary($this->lang);
     }
 
 
@@ -111,10 +99,12 @@ class UserProfile {
             $token = Configs\Factory::createJWT();
             $payload = $token->decode($auth->getValue());
             if (!$payload) {
-                echo "Token expired?";
-                throw "Token  expired";
+                throw new \Exeception("Token  expired");
             } else {
-                $user->initFromPayload($payload);
+                $this->user = $payload->user;
+                $this->id = $payload->id;
+                $this->role = $payload->role;
+                $this->lang = $payload->lang;
             }
         } 
     }
@@ -127,8 +117,5 @@ class UserProfile {
         return true;
     }
     
-    
-    function getRoute($model, $state) {
-        return (!isset($this->routes[$model]) OR !isset($this->routes[$model][$state])) ? [] : $this->routes[$model][$state];
-    }
+  
 }
