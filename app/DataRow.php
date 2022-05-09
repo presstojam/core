@@ -19,6 +19,7 @@ class DataRow {
     protected $parent = null;
     protected $to;
     protected $copy_table=null;
+    protected $reference_table = null;
    
     
     function __construct() {

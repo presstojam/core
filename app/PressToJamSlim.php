@@ -235,12 +235,16 @@ class PressToJamSlim {
             $id = $args["id"];
             
             $model = new Model($name, $self->pdo, $self->user, $self->params);
-            $model->initMeta("ref" . $this->camelCase($field) . "Common");
+            if ($model->initMeta("ref" . $this->camelCase($field) . "Common")) {
+                $res = $model->exec("get");
+                $response = $model->getResult($res);
+                $self->params["__commonid"] = $response["__commonid"];
+            }
 
+            $model = new Model($reference, $self->pdo, $self->user, $self->params);
+            $model->initMeta("get");
             $res = $model->exec("get");
-            $response = $model->getResult($res);
-
-            //$model = new mode($name, )
+            $response->getBody()->write(json_encode($model->getResult($res)));
         });
 
         $this->app->map(["POST", "PUT"], "/import/{name}", function($request, $response, $args) use ($self) {
@@ -275,6 +279,12 @@ class PressToJamSlim {
             });
             
             $group->get("/languages", function (Request $request, Response $response, $args) use ($self) {
+                $lang = new \PressToJam\Dictionary\Languages();
+                $response->getBody()->write($lang->get());
+                return $response;
+            });
+
+            $group->get("/dictionary", function (Request $request, Response $response, $args) use ($self) {
                 $lang = new \PressToJam\Dictionary\Languages();
                 $response->getBody()->write($lang->get());
                 return $response;
