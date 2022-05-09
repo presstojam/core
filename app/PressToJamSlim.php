@@ -32,8 +32,9 @@ class PressToJamSlim {
         //set up all our services here
         $this->pdo = Configs\Factory::createPDO();
         $this->hooks = new Hooks(__DIR__ . "/custom/custom.php");
-        $this->user = new UserProfile($request);
+        $this->user = new UserProfile($this->app->getCallableResolver());
         $this->params = new Params();
+
 
     }
 
@@ -58,15 +59,14 @@ class PressToJamSlim {
         });
     }
 
-
-    function validateUser($request) {
-       // $this->user->validate($request);
+    function camelCase($str) {
+        return str_replace('-', '', ucwords($tr, "-"));
     }
 
 
     function validateRoute($request, $handler) {
 
-        $class_name = "PressToJam\Profiles\\" . str_replace('-', '', ucwords($this->user->user, "-"));
+        $class_name = "PressToJam\Profiles\\" . $this->camelCase($this->user->user);
         $profile = new $class_name();
         
         $routeContext = RouteContext::fromRequest($request);
@@ -89,8 +89,6 @@ class PressToJamSlim {
 
 
     function initMiddleware() {
-
-        $user = $this->user;
 
         $self = $this;
 
@@ -121,6 +119,11 @@ class PressToJamSlim {
             return $handler->handle($request);
         });
 
+
+        $app->addRoutingMiddleware();
+        $errorMiddleware = $app->addErrorMiddleware(true, true, true);
+        $errorHandler = $errorMiddleware->getDefaultErrorHandler();
+        $errorHandler->forceContentType('application/json');
     }
 
 
@@ -206,16 +209,26 @@ class PressToJamSlim {
             $id = $args["id"];
 
             $model = new Model($name, $self->pdo, $self->user, $self->params);
-            $model->initMeta("asset");
+            $model->initMeta("asset" . $this->camelCase($field));
 
             $res = $model->exec("get");
             $response = $model->getResult($res);
             $s3writer = Configs\Factory::createS3Writer();
-            $s3writer->push($res["{{ field }}"]);
+            $s3writer->push($response["{{ field }}"]);
         });
 
         $this->app->get("/reference/{name}/{field}/{id}", function($request, $response, $args) use ($self) {
+            $name = $args["name"];
+            $field = $args["field"];
+            $id = $args["id"];
+            
+            $model = new Model($name, $self->pdo, $self->user, $self->params);
+            $model->initMeta("ref" . $this->camelCase($field) . "Common");
 
+            $res = $model->exec("get");
+            $response = $model->getResult($res);
+
+            //$model = new mode($name, )
         });
 
         $this->app->map(["POST", "PUT"], "/import/{name}", function($request, $response, $args) use ($self) {
@@ -226,13 +239,12 @@ class PressToJamSlim {
 
         });
 
-        if (isset($_ENV['DEVMODE'])) {
+        if (isset($_ENV['DEV'])) {
             $this->app->get("/debugsql/{name}/{state}", function($request, $response, $args) use ($self) {
 
             });
         
-            $this->app->get("/debuguser
-            ", function($request, $response, $args) use ($self) {
+            $this->app->get("/debuguser", function($request, $response, $args) use ($self) {
 
             });
         
@@ -265,10 +277,10 @@ class PressToJamSlim {
             });
 
             $app->get("/site-map", function($request, $response) use ($self) {
-                $class_name = "PressToJam\Profiles\\" . str_replace('-', '', ucwords($self->user->user, "-"));
+                $class_name = "PressToJam\Profiles\\" . $this->camelCase($self->user->user);
                 $profile = new $class_name();
                 $func = "get";
-                if ($self->user->row) $func .= str_replace('-', '', ucwords($self->user->user, "-"));
+                if ($self->user->row) $func .= $this->camelCase($self->user->user);
                 $func .= "Nav";
                 $map = $profile->$func();
                 $response->getBody()->write($map);

@@ -1,10 +1,18 @@
 <?php
 namespace PressToJamCore\Exceptions;
 
-class UserException extends \Exception {
+use \Slim\Exception\HttpSpecializedException;
 
-    function __construct($msg) {
-        parent::__construct("Authorisation failure: " . $msg);
+class UserException extends \HttpSpecializedException {
+
+    protected $code = "401";
+    protected $title = "User Authentication Failed";
+    protected $description = "User Authentication Failed";
+    protected $message = "";
+
+    function __construct($code, $message) {
+        $this->code = $code;
+        $this->message = $message;
     }
 
 }

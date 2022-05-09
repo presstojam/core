@@ -29,24 +29,28 @@ class PreparedStatement {
     
     function prepare($sql)
     {
-     //   echo "SQL is " . $sql;
-        Response::setDebugData(["sql"=>$sql]);
         $this->sql = $sql;
         try {
             $this->stmt = $this->pdo->prepare($sql);
         } catch(\PDOException $e) {
-            throw new \Exception($sql . " \n\n " . $e->getMessage());
+            if ($_ENV['DEV']) {
+                throw new Exceptions\SQLException($this->sql, $args, $e->getMessage());
+            } else {
+                throw new Exception("SQL Error");
+            }
         }
 	}
 
  
     function execute($args=[]) {
-        var_dump($args);
-        Response::setDebugData(["args"=>$args]);
         try {
             $this->stmt->execute($args);
         } catch(\PDOException $e) {
-            throw new Exceptions\SQLException($this->sql, $args, $e->getMessage());
+            if ($_ENV['DEV']) {
+                throw new Exceptions\SQLException($this->sql, $args, $e->getMessage());
+            } else {
+                throw new Exception("SQL Error");
+            }
         }
         return $this->stmt;
     }

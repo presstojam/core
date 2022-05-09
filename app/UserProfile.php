@@ -14,8 +14,22 @@ class UserProfile {
     private $auth_minutes = 15;
 
 
-    function __construct()
+    function __construct($request)
     {
+        $auth = FigRequestCookies::get($request, "api-auth");
+        //otherwise check if set via cookie
+        if ($auth) {
+            $token = Configs\Factory::createJWT();
+            $payload = $token->decode($auth->getValue());
+            if (!$payload) {
+                throw new Exceptions\UserException(401, "The access token has expired");
+            } else {
+                $this->user = $payload->user;
+                $this->id = $payload->id;
+                $this->role = $payload->role;
+                $this->lang = $payload->lang;
+            }
+        } 
     }
 
 
@@ -79,43 +93,10 @@ class UserProfile {
     }
 
 
-    function getDictionary() {
-        $lang = new \PressToJam\Dictionary\Languages();
-        return $lang->getDictionary($this->lang);
-    }
-
-
     function logout($response) {
         FigResponseCookies::remove($response, "api-auth");
         FigResponseCookies::remove($response, "api-refresh");
     }
 
-
-    function validate($request) {
-        //check if a default user has been set
-        $auth = FigRequestCookies::get($request, "api-auth");
-        //otherwise check if set via cookie
-        if ($auth) {
-            $token = Configs\Factory::createJWT();
-            $payload = $token->decode($auth->getValue());
-            if (!$payload) {
-                throw new \Exeception("Token  expired");
-            } else {
-                $this->user = $payload->user;
-                $this->id = $payload->id;
-                $this->role = $payload->role;
-                $this->lang = $payload->lang;
-            }
-        } 
-    }
-
-  
-
-    function hasPermission($model, $state = null) {
-        if (!isset($this->permissions[$model])) return false;
-        else if ($state AND !in_array($state, $this->permissions[$model])) return false;
-        return true;
-    }
-    
   
 }
