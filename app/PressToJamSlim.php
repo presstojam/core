@@ -59,14 +59,11 @@ class PressToJamSlim {
         });
     }
 
-    function camelCase($str) {
-        return str_replace('-', '', ucwords($tr, "-"));
-    }
 
 
     function validateRoute($request, $handler) {
 
-        $class_name = "PressToJam\Profiles\\" . $this->camelCase($this->user->user);
+        $class_name = Factory::createProfile($this->user->user);
         $profile = new $class_name();
         
         $routeContext = RouteContext::fromRequest($request);
@@ -176,21 +173,25 @@ class PressToJamSlim {
             $method = strtolower($request->getMethod());
             $state = (isset($args["state"])) ? $args["state"] : $method;
 
-            $model = new Model($name, $self->pdo, $self->user, $self->params);
-            $model->initMeta($state);
+            $data_row = new DataRow($name);
+            $data_row->{ $state }();
+            $data_row->map($self->params);
 
             if ($state == "login") $method = "get";
-            $res = $model->exec($method);
+            $res = StorageHandler::exec($self->pdo, $data_row, $state);
 
             if ($state == "post") {
                 $response->getBody()->write(json_encode(["__id"=>$self->pdo->lastInsertId()]));
             } else if ($state == "get" OR $state == "parent") {
-                $response->getBody()->write(json_encode($model->getResults($res)));
+                $results_handler = new ResultsHandler($data_row);
+                $response->getBody()->write(json_encode($results_handler->getResults($res)));
             } else if ($state == "primary" OR $state == "count") {
-                $response->getBody()->write(json_encode($model->getResult($res)));
+                $results_handler = new ResultsHandler($data_row);
+                $response->getBody()->write(json_encode($results_handler->getResult($res)));
             } else if ($state == "login") {
-                $data = $model->getResult($res);
-                $self->user->id = $data["__id"];
+                $results_handler = new ResultsHandler($data_row);
+                $data = $results_handler->getResult($res);
+                $self->user->id = $data->__id;
                 $self->user->user = $name;
                 $self->user->save($response);
             }
@@ -204,12 +205,10 @@ class PressToJamSlim {
             $method = strtolower($request->getMethod());
             $state = (isset($args["state"])) ? $args["state"] : $method;
 
-            $model = new Model($name, $self->pdo, $self->user, $self->params);
-            $model->initMeta($state);
-
-            $dictionary = $self->user->getDictionary();
-            $schema = $model->getSchema();
-            $response->getBody()->write(json_encode($dictionary->apply($schema)));
+            $data_row = new DataRow($name);
+            $data_row->{ $state }();
+        
+            $response->getBody()->write(json_encode($data_row->getSchema()));
             return $response;
         })->add(function($request, $response) use ($self) {
             $self->validateRoute($request, $response);
@@ -220,31 +219,36 @@ class PressToJamSlim {
             $field = $args["field"];
             $id = $args["id"];
 
-            $model = new Model($name, $self->pdo, $self->user, $self->params);
-            $model->initMeta("asset" . $this->camelCase($field));
-
-            $res = $model->exec("get");
-            $response = $model->getResult($res);
+            $data_row = new DataRow($name);
+            $data_row->{"asset" . Factory::camelCase($field)}();
+            $res = StorageHandler::exec($self->pdo, $data_row, "get");
+            $results_handler = new ResultsHandler($data_row);
+            $response = $results_handler->getResult($res);
             $s3writer = Configs\Factory::createS3Writer();
-            $s3writer->push($response["{{ field }}"]);
+            $s3writer->push($response->nextField());
         });
 
         $this->app->get("/reference/{name}/{field}/{id}", function($request, $response, $args) use ($self) {
             $name = $args["name"];
             $field = $args["field"];
             $id = $args["id"];
-            
-            $model = new Model($name, $self->pdo, $self->user, $self->params);
-            if ($model->initMeta("ref" . $this->camelCase($field) . "Common")) {
-                $res = $model->exec("get");
-                $response = $model->getResult($res);
-                $self->params["__commonid"] = $response["__commonid"];
+
+
+            $data_row = new DataRow($meta_row);
+            $params = new Params();
+            if ($data_row->{"reference" . Factory::camelCase($field) . "Common"}($data_row)) {
+                $common = StorageHandler($self->pdo, $data_row, "get");
+                $handler = new ResultsHandler($data_row);
+                $row = $handler->get();
+                $params->data = $row->nextField();
             }
 
-            $model = new Model($reference, $self->pdo, $self->user, $self->params);
-            $model->initMeta("get");
-            $res = $model->exec("get");
-            $response->getBody()->write(json_encode($model->getResult($res)));
+            //run ref data row through exec process
+
+            $data_row=$meta_row->get{ "reference" . Factory::camelCase($name) , "Datarow"}($params); 
+            $res = StorageHandler($self->pdo, $data_row, "get");
+            $response = new ResponseProcess();
+            $response->getBody()->write(json_encode($response->getAll($res)));
         });
 
         $this->app->map(["POST", "PUT"], "/import/{name}", function($request, $response, $args) use ($self) {
@@ -286,7 +290,8 @@ class PressToJamSlim {
 
             $group->get("/dictionary", function (Request $request, Response $response, $args) use ($self) {
                 $lang = new \PressToJam\Dictionary\Languages();
-                $response->getBody()->write($lang->get());
+                $dictionary = $self->user->getDictionary();
+                $response->getBody()->write(json_encode($dictionary));
                 return $response;
             });
 
@@ -299,10 +304,9 @@ class PressToJamSlim {
             });
 
             $app->get("/site-map", function($request, $response) use ($self) {
-                $class_name = "PressToJam\Profiles\\" . $this->camelCase($self->user->user);
-                $profile = new $class_name();
+                $profile = Factory::createProfile();
                 $func = "get";
-                if ($self->user->row) $func .= $this->camelCase($self->user->user);
+                if ($self->user->row) $func .= Factory::camelCase($self->user->user);
                 $func .= "Nav";
                 $map = $profile->$func();
                 $response->getBody()->write($map);

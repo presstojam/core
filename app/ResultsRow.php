@@ -28,6 +28,7 @@ class ResultsRow {
 
     function __get($name) {
         if(property_exists($this, $name)) return $this->$name;
+        else if (isset($this->cells[$name])) return $this->cells[$name]->value;
     }
 
 

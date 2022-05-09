@@ -22,6 +22,7 @@ class MetaCell {
     protected $type = CellValueType::fixed;
     protected $default;
     protected $label;
+    protected $validation_tests = [];
     
     protected $summary = false;
 
@@ -78,6 +79,10 @@ class MetaCell {
 
     function toArg($val) {
         return $val;
+    }
+
+    function registerValidationTest($test){ 
+        $this->validation_tests[] = $test;
     }
 
 

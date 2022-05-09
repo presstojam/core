@@ -20,9 +20,10 @@ class DataRow {
     protected $to;
     protected $copy_table=null;
     protected $reference_table = null;
-   
+    
     
     function __construct() {
+   
     }
 
 
@@ -78,6 +79,25 @@ class DataRow {
         $this->limit = $params->limit;
     }
 
+    function removeFields(Params $params, $with_data = false) {
+
+        if (count($params->fields) > 0) {
+            foreach($fields as $field) {
+                if (!isset($this->response_fields[$field])) {
+                    unset($this->response_fields[$field]);
+                }
+            }
+        }
+
+        if ($with_data) {
+            foreach($this->data_fields as $slug=>$field) {
+                if (!isset($params->data[$slug])) {
+                    unset($this->data_fields[$slug]);
+                }
+            }
+        }
+    }
+
 
     function mapRequestData(Params $params) {
         foreach($this->data_fields as $slug=>$field) {
@@ -126,4 +146,22 @@ class DataRow {
         }
         return $args;
     }
+
+
+    function getSchema() {
+        $fields=["data"=>[], "filter"=>[], "response"=>[]];
+        foreach($this->data_fields as $slug=>$field) {
+            $fields["data"][$slug] = $field->schema();
+        }
+
+        foreach($this->filter_fields as $slug=>$field) {
+            $fields["filter"][$slug] = $field->schema();
+        }
+
+        foreach($this->response_fields as $slug=>$field) {
+            $fields["response"][$slug] = $field->schema();
+        }
+        return $fields;
+    }
+
 }
