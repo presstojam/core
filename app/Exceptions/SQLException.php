@@ -1,9 +1,7 @@
 <?php
 namespace PressToJamCore\Exceptions;
 
-use \Slim\Exception\HttpSpecializedException;
-
-class SQLException extends \HttpSpecializedException {
+class SQLException extends \Exception {
     
     protected $code = 500;
     protected $title = "SQL Error";
@@ -14,6 +12,10 @@ class SQLException extends \HttpSpecializedException {
         $this->message= "SQL: " . $sql . "\n";
         $this->message .= "Args: " . implode(", ", $args) . "\n";
         $this->message .= "Error: " . $msg;
+    }
+
+    function __get($key) {
+        if (property_exist($this, $key)) return $this->$key;
     }
 
 

@@ -1,20 +1,21 @@
 <?php
 namespace PressToJamCore\Exceptions;
 
-use \Slim\Exception\HttpSpecializedException;
+class CellException extends \Exception {
 
-class CellException extends \HttpSpecializedException {
-
-    protected $code = 500;
+    protected $code = "500";
+    protected $message = "";
     protected $title = "Field doesn't exist";
-    protected $description = "Field doesn't exist";
-    protected $message = "Field: ";
+    protected $description "Trying to access field that doesn't exist";
    
 
     function __construct($model_name, $name) {
-        $this->message .= $model_name . "::" . $name . " doesn't exist";
+        $this->message = "Field: " . $model_name . "::" . $name . " doesn't exist";
     }
 
+    function __get($key) {
+        if (property_exist($this, $key)) return $this->$key;
+    }
 
 
 }

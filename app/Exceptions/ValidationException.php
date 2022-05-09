@@ -1,9 +1,8 @@
 <?php
 namespace PressToJamCore\Exceptions;
 
-use \Slim\Exception\HttpSpecializedException;
 
-class ValidationException extends \HttpSpecializedException {
+class ValidationException extends \Exception {
 
     protected $code = "500";
     protected $title = "Validation Errors";
@@ -11,6 +10,10 @@ class ValidationException extends \HttpSpecializedException {
     protected $message = "";
 
     function __construct($errors) {
-        $this->message = json_encode($errors);
+        $this->message = $errors;
+    }
+
+    function __get($key) {
+        if (property_exist($this, $key)) return $this->$key;
     }
 }

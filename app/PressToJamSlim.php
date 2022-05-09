@@ -93,6 +93,18 @@ class PressToJamSlim {
         $self = $this;
 
         $this->app->add(function($request, $handler) {
+            //write our error messages and reset to work with error handling
+            try {
+                $response = $handler->handle($request);
+            } catch(\Exception $e) {
+                $excep = new HttpException($request, $e->code, $e->message, $e);
+                $excep->setTitle($e->title);
+                $excep->setDescription($e->description);
+                throw $excep;
+            } 
+        });
+
+        $this->app->add(function($request, $handler) {
             $response = $handler->handle($request);
             return $response->withHeader(
                 'Content-Type',
