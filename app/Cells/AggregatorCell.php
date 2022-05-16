@@ -3,13 +3,13 @@
 namespace PressToJamCore\Cells;
 
 
-class DataCell {
+class AggregatorCell {
 
     protected $value = null;
     protected $meta_field = null;
-    protected $locked = false;
-  
-    function __construct(MetaCell $field) {
+    protected $alias;
+
+    function __construct($field) {
         $this->meta_field = $field;
         $this->value = $this->meta_field->default;
     }
@@ -69,16 +69,7 @@ class DataCell {
     }
 
     function map($val) {
-        if ($this->locked) return;
-        $val = $this->meta_field->map($val);
-        $validate = $this->meta_field->validate($val);
-        if ($validate != ValidationRules::OK) {
-            return $validate;
-        }
-        $this->value = $val;
-        if ($this->meta_field->immutable) {
-            $this->locked = true;
-        }
+        $this->value = $this->meta_field->map($val);
     }
 
  

@@ -23,6 +23,9 @@ class MetaCell {
     protected $default;
     protected $label;
     protected $validation_tests = [];
+    protected $alias;
+    protected $slug;
+    protected $immutable = false;
     
     protected $summary = false;
 
@@ -96,6 +99,7 @@ class MetaCell {
         ];
         $arr["label"] = $this->label;
         $arr["title"] = $this->label;
+        $arr["immutable"] = $this->immutable;
         if ($this->default) $arr["default"] = $this->default;
         if ($this->summary) $arr["summary"] = true;
 

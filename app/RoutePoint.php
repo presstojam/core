@@ -6,11 +6,11 @@ namespace PressToJamCore;
 class RoutePoint implements \JsonSerializable {
 
     protected $name;
+    protected $title;
     protected $parent;
     protected $children = [];
-    protected $has_edit = true;
-    protected $has_create = true;
-    protected $has_delete = true;
+    protected $perms = [];
+    protected $refs = [];
     protected $reverse_refs = [];
     
 
@@ -35,19 +35,23 @@ class RoutePoint implements \JsonSerializable {
     function addReverseRef($ref) {
         $this->reverse_refs[] = $ref;
     }
+
+    function addRef($ref) {
+        $this->refs[] = $ref;
+    }
+
+    function addPerm($perm) {
+        $this->perms[] = $perm;
+    }
    
-
     function jsonSerialize() {
-        $perms=[];
-        if ($has_edit) $perms[] = "put";
-        if ($has_create) $perms[] = "create";
-        if ($has_delete) $perms[] = "delete";
-
         $arr=[
             "name"=>$this->name, 
+            "title"=>$this->title,
             "parent"=>$this->parent, 
             "perms"=>$this->perms, 
             "children"=>$this->children, 
+            "refs"=>$this->refs,
             "reverse_refs"=>$this->reverse_refs
         ];
         return $arr;

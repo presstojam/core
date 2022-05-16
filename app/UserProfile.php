@@ -5,20 +5,21 @@ use \Dflydev\FigCookies\FigRequestCookies;
 use \Dflydev\FigCookies\FigResponseCookies;
 
 
-class UserProfile {
+class UserProfile implements \JsonSerializable {
     protected $user = "public";
     protected $id = 0;
-    protected $profile = null;
+    protected $role = null;
     protected $lang = null;
     private $refresh_minutes = 86400;
     private $auth_minutes = 15;
+    private $required = true;
 
 
     function __construct($request)
     {
         $auth = FigRequestCookies::get($request, "api-auth");
         //otherwise check if set via cookie
-        if ($auth) {
+        if ($auth AND $auth->getValue()) {
             $token = Configs\Factory::createJWT();
             $payload = $token->decode($auth->getValue());
             if (!$payload) {
@@ -59,7 +60,7 @@ class UserProfile {
             "user"=>$this->user, 
             "id"=>$this->id, 
             "lang"=>$this->lang, 
-            "profile"=>$this->profile
+            "role"=>$this->role
         ];
         
         $token = Configs\Factory::createJWT();
@@ -96,6 +97,15 @@ class UserProfile {
     function logout($response) {
         FigResponseCookies::remove($response, "api-auth");
         FigResponseCookies::remove($response, "api-refresh");
+    }
+
+    function jsonSerialize() {
+        return [
+            "user" => $this->user,
+            "id" => $this->id,
+            "lang" => $this->lang,
+            "role" => $this->role
+        ];
     }
 
   

@@ -5,19 +5,15 @@ namespace PressToJamCore;
 class MetaCollection {
 
     protected $slug = "";
+    protected $table = "";
     protected $alias;
-    protected $fields = [];
-    protected $parent = null;
-    protected $primary = null;
-    protected $owner = null;
-    protected $archive = null;
-    protected $date_created = null;
-    protected $last_updated = null;
-    protected $sort;
-    
+
     static protected $num = 1;
     
-    function __construct() {
+    
+    function __construct($slug, $table) {
+        $this->slug = $slug;
+        $this->table = $table;
         $this->alias = "t" . self::$num;
         ++self::$num;
     }
@@ -32,4 +28,11 @@ class MetaCollection {
     }
 
 
+    function hasOwner() {
+        return method_exists($this, "owner");
+    }
+
+    function hasParent() {
+        return method_exists($this, "parent");
+    }
 }

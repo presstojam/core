@@ -77,15 +77,13 @@ class IdCell extends MetaCell {
         $arr["type"] = "ID";
         if ($this->is_primary) {
             $arr["is_primary"] = true;
-        }
-        if ($this->is_parent) {
+        } else if ($this->is_parent) {
             $arr["is_parent"] = true;
-        }
-        if ($this->reference) {
+        } else if ($this->reference OR $this->is_circular) {
             $arr["reference"] = true;
         }
         if ($this->is_circular) {
-            $arr["circular"] = true;
+            $arr["recursive"] = true;
         }
         return $arr;
     }

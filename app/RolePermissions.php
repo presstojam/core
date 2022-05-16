@@ -2,23 +2,36 @@
 namespace PressToJamCore;
 
 class RolePermissions {
-    protected $uri;
+   
     protected $perms =[];
+    protected $owner_groups = [];
 
-    function __construt($uri) {
-        $this->uri = $uri;
+    function hasPermission($route, $model, $state) {
+        if (!isset($this->perms[$route])) return false;
+        if (!isset($this->perms[$route][$model])) return false;
+        if (isset($this->perms[$route][$model][$state])) return true;
+        return false;        
     }
 
-    function addPerm($perm) {
-        $this->perms[] = $perm;
+
+    function hasModelPermission($route, $model) {
+        return isset($this->perms[$route][$model]);     
     }
 
-    function getPerms() {
-        return $this->perms;
+
+    function requiresOwner($route) {
+        return in_array($route, $this->owner_groups);
     }
 
-    function getURI() {
-        return $this->uri;
+
+
+    
+    function hasRoutePermission($route, $model, $state, $method) {
+        if (!isset($this->perms[$route])) return false;
+        if (!isset($this->perms[$route][$model])) return false;
+        if (!isset($this->perms[$route][$model][$state])) return false;
+        if ($this->perms[$route][$model][$state] == $method) return true;
+        return false;
     }
 }
 

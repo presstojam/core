@@ -39,8 +39,10 @@ class Params
                 $this->data[$key] = $val;
                 continue;
             }
+        
             $decoded_val = json_decode($val);
-            if ($decoded_val) $val = $decoded_val;
+            if ($decoded_val !== null) $val = $decoded_val;
+            
             if (strpos($key, "__") === 0) {
                 $key = substr($key, 2);
                 $this->$key = $val;

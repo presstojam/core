@@ -1,7 +1,7 @@
 <?php
 namespace PressToJamCore\Exceptions;
 
-class SQLException extends \Exception {
+class SQLException extends PtjException {
     
     protected $code = 500;
     protected $title = "SQL Error";
@@ -13,11 +13,6 @@ class SQLException extends \Exception {
         $this->message .= "Args: " . implode(", ", $args) . "\n";
         $this->message .= "Error: " . $msg;
     }
-
-    function __get($key) {
-        if (property_exist($this, $key)) return $this->$key;
-    }
-
 
 
 }

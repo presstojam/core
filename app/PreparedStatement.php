@@ -36,7 +36,7 @@ class PreparedStatement {
             if ($_ENV['DEV']) {
                 throw new Exceptions\SQLException($this->sql, $args, $e->getMessage());
             } else {
-                throw new Exception("SQL Error");
+                throw new Exceptions\SQLException($this->sql, $args, $e->getMessage());
             }
         }
 	}
@@ -46,10 +46,10 @@ class PreparedStatement {
         try {
             $this->stmt->execute($args);
         } catch(\PDOException $e) {
-            if ($_ENV['DEV']) {
+            if (isset($_ENV['DEV'])) {
                 throw new Exceptions\SQLException($this->sql, $args, $e->getMessage());
             } else {
-                throw new Exception("SQL Error");
+                throw new Exceptions\SQLException($this->sql, $args, $e->getMessage());
             }
         }
         return $this->stmt;

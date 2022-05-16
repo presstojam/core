@@ -1,11 +1,12 @@
 <?php
 namespace PressToJamCore;
 
-use Psr\Http\Message\ResponseInterface as Response;
-use Psr\Http\Message\ServerRequestInterface as Request;
-use Slim\Factory\AppFactory;
-use Slim\Routing\RouteCollectorProxy;
-use Slim\Routing\RouteContext;
+use \Psr\Http\Message\ResponseInterface as Response;
+use \Psr\Http\Message\ServerRequestInterface as Request;
+use \Slim\Factory\AppFactory;
+use \Slim\Routing\RouteCollectorProxy;
+use \Slim\Routing\RouteContext;
+use \Slim\Exception\HttpException;
 
 
 class PressToJamSlim {
@@ -16,26 +17,24 @@ class PressToJamSlim {
     protected $pdo;
     protected $hooks;
     protected $params;
+    protected $cors;
+    protected $perms;
    
 
-    function __construct() {
+    function __construct($cors = null) {
         $this->app = AppFactory::create();
-        $this->cors_headers = [
-            "Content-Type",
-            "Authorization",
-            "Referer",
-            "sec-ch-ua",
-            "sec-ch-ua-mobile",
-            "User-Agent"];
-
-            
+              
         //set up all our services here
         $this->pdo = Configs\Factory::createPDO();
         $this->hooks = new Hooks(__DIR__ . "/custom/custom.php");
-        $this->user = new UserProfile($this->app->getCallableResolver());
         $this->params = new Params();
 
-
+        if (!$cors) {
+            $this->cors = new Cors();
+            $this->cors->origin = (isset($_SERVER['HTTP_ORIGIN'])) ? $_SERVER['HTTP_ORIGIN'] : 0;
+        } else {
+            $this->cors = $cors;
+        }
     }
 
 
@@ -63,22 +62,24 @@ class PressToJamSlim {
 
     function validateRoute($request, $handler) {
 
-        $class_name = Factory::createProfile($this->user->user);
-        $profile = new $class_name();
+        $class_name = Factory::createPerms($this->user);
+        $this->perms = new $class_name();
         
         $routeContext = RouteContext::fromRequest($request);
         $route = $routeContext->getRoute();
 
+        $cat = $route->getArgument("route");
         $model = $route->getArgument("name");
         $method = strtolower($request->getMethod());
-        if ($route->hasArgument("state")) {
-            $state = $route->hasArgument("state");
-        } else {
-            $state = $method;
-        }
+        $args = $route->getArguments();
+        $state = (isset($args["state"])) ? $args["state"] : $method;
 
-        if (!$profile->hasPermission($model, $method, $state)) {
-            throw new Error();
+        if ($state == "model") {
+            if (!$this->perms->hasModelPermission($cat, $model)) {
+                throw new Exceptions\UserException(403, "This user does not have authorisation for model " . $model);
+            }
+        } else if (!$this->perms->hasPermission($cat, $model, $state, $method)) {
+            throw new Exceptions\UserException(403, "This user does not have authorisation for this route");
         }
         
         return $handler->handle($request);
@@ -89,132 +90,128 @@ class PressToJamSlim {
 
         $self = $this;
 
+        $this->app->addRoutingMiddleware();
+
         $this->app->add(function($request, $handler) {
             //write our error messages and reset to work with error handling
             try {
                 $response = $handler->handle($request);
             } catch(\Exception $e) {
-                $excep = new HttpException($request, $e->code, $e->message, $e);
-                $excep->setTitle($e->title);
-                $excep->setDescription($e->description);
+                $excep = new HttpException($request, $e->getMessage(), $e->getCode(), $e);
+                $excep->setTitle($e->getTitle());
+                $excep->setDescription($e->getDescription());
                 throw $excep;
             } 
+            return $response;
         });
-
-        $this->app->add(function($request, $handler) {
-            $response = $handler->handle($request);
-            return $response->withHeader(
-                'Content-Type',
-                'application/json'
-            );
-        });
-
-        $this->app->addRoutingMiddleware();
+      
 
         $this->app->add(function($request, $handler) use ($self) {
+            $self->user = new UserProfile($request);
+            $self->user->user = "accounts";
+            $self->user->id = 1;
+            return $handler->handle($request);
+        });
+
+
+
+        $errorMiddleware = $this->app->addErrorMiddleware(true, true, true);
+        $errorHandler = $errorMiddleware->getDefaultErrorHandler();
+        $errorHandler->forceContentType('application/json');
+
+
+        $this->app->add(function ($request, $handler) use ($self) {
             $contentType = $request->getHeaderLine('Content-Type');
             $method = $request->getMethod();
             if ($method != "GET") {
-                if($method == "POST" AND strstr($contentType, "application/x-www-form-urlencoded")) $self->params->apply($_POST);
-                else if (strstr($contentType, 'application/json')) {
-                    $contents = json_decode(file_get_contents('php://input'), true);
+                if ($method == "POST") {
+                    $self->params->apply($_POST);
+                }
+                
+                $str = file_get_contents('php://input');
+                if ($str) {
+                    $contents = json_decode($str, true);
                     if (json_last_error() === JSON_ERROR_NONE) {
-                        $self->params->apply($request->withParsedBody($contents));
+                        $self->params->apply($contents);
                     }
                 }
             }
 
             $self->params->apply($_GET);
-            return $handler->handle($request);
+
+            $response = $handler->handle($request);
+            return $response
+                ->withHeader('Access-Control-Allow-Origin', $self->cors->origin)
+                ->withHeader('Access-Control-Allow-Headers', implode(",", $self->cors->headers))
+                ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
+                ->withHeader('Access-Control-Allow-Credentials', 'true')
+                ->withHeader('Content-Type', 'application/json');
         });
-
-
-        $app->addRoutingMiddleware();
-        $errorMiddleware = $app->addErrorMiddleware(true, true, true);
-        $errorHandler = $errorMiddleware->getDefaultErrorHandler();
-        $errorHandler->forceContentType('application/json');
+        
     }
 
 
-    function initCors($cors_headers = [], $cors_domains = []) {
-        if (!isset($_SERVER['HTTP_ORIGIN'])) return;
+    function addRoutes() {
+        $self = $this;
 
         $this->app->options('/{routes:.+}', function ($request, $response, $args) {
             return $response;
         });
 
-        if (!$cors_headers) $cors_headers = $this->cors_headers;
-
-        $origin = $_SERVER['HTTP_ORIGIN'];
-        if ($cors_domains AND !in_array($origin, $cors_domains)) {
-            $origin = 0;
-        }
-
-        $this->app->add(function ($request, $handler) use ($origin, $cors_headers) {
-            $response = $handler->handle($request);
-            return $response
-                ->withHeader('Access-Control-Allow-Origin', $origin)
-                ->withHeader('Access-Control-Allow-Headers', implode(",", $cors_headers))
-                ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-        });
-    }
-
-    function initErrorHandlers() {
-
-    }
-
-
-
-    function addRoutes() {
-        $self = $this;
+        $this->app->map(['POST', 'PUT', 'DELETE'], '/data/{route/{name}', function (Request $request, Response $response, $args) use ($self) {
+            $name = $args['name'];
+            $method = strtolower($request->getMethod());
         
-        $this->app->map(['GET','POST','PUT','DELETE'], '/data/{name}[/{state}]', function (Request $request, Response $response, $args) use ($self) {
+            $model = Factory::createModel($name, $self->user, $self->pdo, $self->params, $self->hooks);
+            $results = $model->$state($self->params);
+            $response->getBody()->write(json_encode($results));
+            return $response;
+        })->add(function($request, $handler) use ($self) {
+            return $self->validateRoute($request, $handler);
+        });
+        
+        $this->app->get('/data/{route}/{name}[/{state}]', function (Request $request, Response $response, $args) use ($self) {
+            $name = $args['name'];
+            $state = (isset($args["state"])) ? $args["state"] : "get";
+           
+            $model = Factory::createRepo($name, $self->user, $self->pdo, $self->params, $self->hooks);
+            $results = $model->$state($self->params);
+            $response->getBody()->write(json_encode($results));
+            return $response;
+        })->add(function($request, $handler) use ($self) {
+            return $self->validateRoute($request, $handler);
+        });
+
+
+        $this->app->post('/data/{route}/{name}/login', function (Request $request, Response $response, $args) use ($self) {
+            $name = $args['name'];
+            $model = Factory::createRepo($name, $self->user, $self->pdo, $self->hooks);
+            $results = $model->login($self->params);
+            $self->user->id = $data->__id;
+            $self->user->user = $name;
+            $self->user->save($response);
+            return $response;
+        })->add(function($request, $handler) use ($self) {
+            return $self->validateRoute($request, $handler);
+        });
+
+        $this->app->map(['GET','POST','PUT','DELETE'], "/route/{route}/{name}[/{state}]", function ($request, $response, $args) use ($self) {
+            $cat = $args["route"];
             $name = $args['name'];
             $method = strtolower($request->getMethod());
             $state = (isset($args["state"])) ? $args["state"] : $method;
 
-            $data_row = new DataRow($name);
-            $data_row->{ $state }();
-            $data_row->map($self->params);
-
-            if ($state == "login") $method = "get";
-            $res = StorageHandler::exec($self->pdo, $data_row, $state);
-
-            if ($state == "post") {
-                $response->getBody()->write(json_encode(["__id"=>$self->pdo->lastInsertId()]));
-            } else if ($state == "get" OR $state == "parent") {
-                $results_handler = new ResultsHandler($data_row);
-                $response->getBody()->write(json_encode($results_handler->getResults($res)));
-            } else if ($state == "primary" OR $state == "count") {
-                $results_handler = new ResultsHandler($data_row);
-                $response->getBody()->write(json_encode($results_handler->getResult($res)));
-            } else if ($state == "login") {
-                $results_handler = new ResultsHandler($data_row);
-                $data = $results_handler->getResult($res);
-                $self->user->id = $data->__id;
-                $self->user->user = $name;
-                $self->user->save($response);
-            }
+            $route = Factory::createRoute($name, $self->user, $self->params);
+            $details = ($state != "model") ? $route->$state($self->params) : $route->model($self->perms, $cat);
+            $str = json_encode($details);
+            $response->getBody()->write($str);
             return $response;
-        })->add(function($request, $response) use ($self) {
-            $self->validateRoute($request, $response);
+        })->add(function($request, $handler) use ($self) {
+            return $self->validateRoute($request, $handler);
         });
 
-        $this->app->map(['GET','POST','PUT','DELETE'], "/route/{name}[/{state}]", function ($request, $response) use ($self) {
-            $name = $args['name'];
-            $method = strtolower($request->getMethod());
-            $state = (isset($args["state"])) ? $args["state"] : $method;
 
-            $data_row = new DataRow($name);
-            $data_row->{ $state }();
-        
-            $response->getBody()->write(json_encode($data_row->getSchema()));
-            return $response;
-        })->add(function($request, $response) use ($self) {
-            $self->validateRoute($request, $response);
-        });
-
-        $this->app->patch("/asset/{name}/{field}/{id}", function($request, $response, $args) use ($self) {
+        $this->app->patch("/asset/{route}/{name}/{field}[/{id}]", function($request, $response, $args) use ($self) {
             $name = $args["name"];
             $field = $args["field"];
             $id = $args["id"];
@@ -226,46 +223,37 @@ class PressToJamSlim {
             $response = $results_handler->getResult($res);
             $s3writer = Configs\Factory::createS3Writer();
             $s3writer->push($response->nextField());
+            return $response;
         });
 
-        $this->app->get("/reference/{name}/{field}/{id}", function($request, $response, $args) use ($self) {
+        $this->app->get("/reference/{route}/{name}/{field}/{id}", function($request, $response, $args) use ($self) {
+            
             $name = $args["name"];
             $field = $args["field"];
             $id = $args["id"];
 
-
-            $data_row = new DataRow($meta_row);
-            $params = new Params();
-            if ($data_row->{"reference" . Factory::camelCase($field) . "Common"}($data_row)) {
-                $common = StorageHandler($self->pdo, $data_row, "get");
-                $handler = new ResultsHandler($data_row);
-                $row = $handler->get();
-                $params->data = $row->nextField();
-            }
-
-            //run ref data row through exec process
-
-            $data_row=$meta_row->get{ "reference" . Factory::camelCase($name) , "Datarow"}($params); 
-            $res = StorageHandler($self->pdo, $data_row, "get");
-            $response = new ResponseProcess();
-            $response->getBody()->write(json_encode($response->getAll($res)));
+            $ref = Factory::createReference($name);
+            $results = $ref->{ "get" . Factory::camelCase($field) }($id, $self->user, $self->pdo);
+        
+            $response->getBody()->write(json_encode($results));
+            return $response;
         });
 
         $this->app->map(["POST", "PUT"], "/import/{name}", function($request, $response, $args) use ($self) {
-
+            return $response;
         });
 
         $this->app->map(["POST", "DELETE"], "/bulk/{name}", function($request, $response, $args) use ($self) {
-
+            return $response;
         });
 
         if (isset($_ENV['DEV'])) {
             $this->app->get("/debugsql/{name}/{state}", function($request, $response, $args) use ($self) {
-
+                return $response;
             });
         
             $this->app->get("/debuguser", function($request, $response, $args) use ($self) {
-
+                return $response;
             });
         
         }
@@ -280,6 +268,24 @@ class PressToJamSlim {
             $group->get("/check-user", function (Request $request, Response $response, $args) use ($self) {
                 $response->getBody()->write(json_encode($self->user));
                 return $response;
+            });
+
+            $group->post("/change-role", function (Request $request, Response $response, $args) use ($self) {
+                $role = $this->params->data["role"];
+                if ($role != $self->user->role) {
+                    $self->user->role = ""; //reset so we get the correct initial perms
+                    $perms = Factory::createPerms($self->user);
+                    if ($role) {
+                        $roles = $perms->getRoles();
+                        if (in_array($role, $roles)) {
+                            $self->user->role = $role;
+                        }
+                    }
+                    $self->user->save($response);
+                }
+                $response->getBody()->write(json_encode($self->user));
+                return $response;
+
             });
             
             $group->get("/languages", function (Request $request, Response $response, $args) use ($self) {
@@ -303,13 +309,10 @@ class PressToJamSlim {
                 return $response;
             });
 
-            $app->get("/site-map", function($request, $response) use ($self) {
-                $profile = Factory::createProfile();
-                $func = "get";
-                if ($self->user->row) $func .= Factory::camelCase($self->user->user);
-                $func .= "Nav";
-                $map = $profile->$func();
-                $response->getBody()->write($map);
+            $group->get("/site-map", function($request, $response) use ($self) {
+                $profile = Factory::createNav($self->user);
+                $response->getBody()->write(json_encode($profile->getNav()));
+                return $response;
             });
             
             $group->post("/logout", function (Request $request, Response $response, $args) use ($self) {

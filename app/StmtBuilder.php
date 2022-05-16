@@ -4,47 +4,99 @@ namespace PressToJamCore;
 
 
 class StmtBuilder {
-
-    protected $data_row;
+    protected $cols = [];
+    protected $structure = [];
+    protected $limit;
+    protected $order_by = [];
+    protected $group_by = [];
+    protected $having = [];
+    protected $input_shape;
+    protected $output_shape;
+    protected $from;
+    protected $from_alias = "";
     
 
-    function __construct(DataRow $data_row) {
-        $this->data_row = $data_row;
+    function __construct() {
     }
 
     
-    function buildFilter() {
+    function buildFilter()
+    {
         $sql = "";
         $filter_cols = [];
 
-        foreach ($this->data_row->filter_fields as $field) {
+        foreach ($this->input_shape->filter_fields as $field) {
             $filter_cols[] =  $field->mapToStmtFilter($field->alias . "." . $field->name);
         }
         if (count($filter_cols) > 0) {
             $sql .= " WHERE " . implode(" AND ", $filter_cols);
         }
-
-        if (count($this->data_row->sort) > 0) {
-            $sql .= " ORDER BY " . implode(", ", $this->data_row->sort) . " ";
+    
+        if (count($this->order_by) > 0) {
+            $sql .= " ORDER BY " . implode(", ", $this->order_by) . " ";
         }
         
 
-        if ($this->data_row->limit) {
-            $sql .= " LIMIT " . $this->data_row->limit;
+        if ($this->limit) {
+            $sql .= " LIMIT " . $this->limit;
         }
 
         return $sql;
     }
 
+    function joins() {
+        $joins = [];
+        foreach($this->input_shape->relationship_fields as $field) {
+            if ($field->is_parent) {
+                $primary = $field->reference->primary();
+                $join_str = "INNER JOIN " . $field->reference->table . " " . $field->reference->alias . " ON ";
+                $join_str .= " " . $field->alias . "." . $field->name . " = " . $primary->alias . "." . $primary->name;
+                $joins[] = $join_str;
+            } else {
+                if ($field->required) {
+                    $join_str = "INNER JOIN ";
+                } else {
+                    $join_str = "LEFT OUTER JOIN ";
+                }
+                $primary = $field->reference->primary();
+                $join_str .= $field->reference->tabel . " " . $field->reference->alias . " ON ";
+                $join_str .= " " . $field->alias . "." . $field->name . " = " . $primary->alias . "." . $primary->name;
+                $joins[] = $join_str;
+            }
+        }
 
+
+        foreach($this->output_shape->relationship_fields as $field) {
+            if ($field->is_primary) {
+                foreach($field->references as $ref) {
+                    $parent = $field->reference->parent();
+                    $join_str = "LEFT OUTER JOIN " . $ref->table . " " . $ref->alias . " ON ";
+                    $join_str .= " " . $field->alias . "." . $field->name . " = " . $parent->alias . "." . $parent->name;
+                    $joins[] = $join_str;
+                }
+            } else {
+                if ($field->required) {
+                    $join_str = "INNER JOIN ";
+                } else {
+                    $join_str = "LEFT OUTER JOIN ";
+                }
+                $primary = $field->reference->primary();
+                $join_str .= $field->reference->tabel . " " . $field->reference->alias . " ON ";
+                $join_str .= " " . $field->alias . "." . $field->name . " = " . $primary->alias . "." . $primary->name;
+                $joins[] = $join_str;
+            }
+        }
+
+        return implode (" ", $joins);
+    }
 
     function get() {
         $data_cols=[];
-        foreach ($this->data_row->response_fields as $field) {
+        foreach ($this->output_shape->fields as $field) {
             $data_cols[] = $field->alias . "." . $field->name;
         }
 
-        foreach($this->data_row->encrypted_filter_fields as $field) {
+        foreach($this->output_shape->filter_fields as $field) {
             $data_cols[] = $field->alias . "." . $field->name;
         }
       
@@ -52,8 +104,8 @@ class StmtBuilder {
             throw new \Error("No cols selected for statement ");
         }
         $sql = "SELECT " . implode(",", $data_cols);
-        $sql .= " FROM " . $this->data_row->from;
-        $sql .= " " . implode(" ", $this->data_row->joins) . " ";
+        $sql .= " FROM " . $this->from;
+        $sql .= " " . $this->joins() . " ";
         $sql .= $this->buildFilter();
         //echo $sql;
         return $sql;
@@ -61,49 +113,23 @@ class StmtBuilder {
 
 
 
-    function selectChildren() {
-        $data_cols = [];
-        $cols = $this->data_row->children;
-        foreach ($cols as $col) {
-            $data_fields = $col->data_fields;
-            foreach ($data_fields as $field) {
-                $data_cols[] = $col->alias . "." . $field->name;
-            }
-        }
-        if (count($data_cols) == 0) {
-            throw new \Error("No cols selected for statement ");
-        }
-
-        $sql = "SELECT " . implode(",", $data_cols);
-        $sql .= " FROM " . $this->data_row->from;
-        $sql .= " " . implode(" ", $this->data_row->joins) . " ";
-    
-        $filter_cols = [];
-        foreach($this-data_row->filter_fields as $field) {
-            $filter_cols[] =  $field->mapToStmtFilter($field->alias . "." . $field->name);
-        }
-        $sql .= " WHERE " . implode(" AND ", $filter_cols);
-        return $sql;
-    }
-
-
     function put() {
-        if (count($this->data_row->filter_fields) == 0) {
+        if (count($this->input_shape->filter_fields) == 0) {
             throw new \Error("Insecure update, must have a valid where clause");
         }
 
-        if (count($this->data_row->data_fields) == 0) {
+        if (count($this->input_shape->fields) == 0) {
             throw new \Error("Update error, must have cols to update");
         }
 
         $data_cols = [];
-        foreach($this->data_row->data_fields as $field) {
-            $data_cols[] = $tfield->alias . "." . $field->name . " = ?";
+        foreach($this->input_shape->fields as $field) {
+            $data_cols[] = $field->alias . "." . $field->name . " = ?";
         }
 
-        $sql = "UPDATE " . $this->data_row->from . " ". implode(" ", $this->joins) . " SET " . implode(",", $data_cols);
+        $sql = "UPDATE " . $this->from . " ". $this->joins() . " SET " . implode(",", $data_cols);
 
-        $filter_fields = $this->data_row->filter_fields;
+        $filter_fields = $this->input_shape->filter_fields;
         foreach ($filter_fields as $field) {
             $filter_cols[] =  $field->mapToStmtFilter($field->alias . "." . $field->name);
         }
@@ -113,47 +139,17 @@ class StmtBuilder {
     }
 
 
-    function copy() {
-        if (count($this->data_row->filter_fields) == 0) {
-            throw new \Error("Can't copy without a filter field");
-        }
-
-        if (count($this->data_row->data_fields) == 0) {
-            throw new \Error("Copy error, must have cols to copy");
-        }
-
-        
-        $data_cols = [];
-        $select_cols = [];
-        foreach ($this->data_row->data_fields as $field) {
-            $data_cols[] = $field->name;
-            $select_cols[] = $field->alias . "." . $field->name;
-        }
-        
-        $filter_cols = [];
-        foreach ($this->data_row->filter_fields as $field) {
-            $filter_cols[] =  $field->mapToStmtFilter($field->alias . "." . $field->name);
-        }
-
-        $sql = "INSERT INTO " . $this->data_row->copy_table . "(" . join(", ", $data_cols) . ") SELECT ";
-        $sql .= join(", ", $select_cols) . " FROM " . $this->data_row->from . " WHERE ";
-        $sql .= implode(" AND ", $filter_cols);
-        
-        return $sql;
-    }
-
-
     function post() {
-        if (count($this->data_row->data_fields) == 0) {
+        if (count($this->input_shape->fields) == 0) {
             throw new \Error("Insert error, must have cols to update");
         }
 
         $cols = [];
-        foreach($this->data_row->data_fields as $field) {
+        foreach($this->input_shape->fields as $field) {
             $cols[$field->name] = "?";
         }
 
-        $sql = "INSERT INTO " . $this->data_row->table . " (" . implode(", ", array_keys($cols) ) . ") ";
+        $sql = "INSERT INTO " . $this->from . " (" . implode(", ", array_keys($cols) ) . ") ";
         $sql .= " VALUES (" . implode(", ", $cols) . ")";
         return $sql;
     }
@@ -161,20 +157,27 @@ class StmtBuilder {
 
     function delete() {
 
-        if (count($this->data_row->filter_fields) == 0) {
+        if (count($this->input_shape->filter_fields) == 0) {
             throw new \Error("Insecure delete, must have a valid where clause");
         }
 
 
         $tables = [];
-        $tables[] = $this->data_row->alias;
-        foreach($this->data_row->children as $child) {
-            $tables[] = $child->alias;
+        $tables[] = $this->from_alias;
+
+        foreach($this->output_shape->relationship_fields as $field) {
+            $tables[] = $field->reference;
+            if ($field->is_primary) {
+                foreach($field->references as $ref) {
+                   $tables[] = $ref->alias;
+                }
+            }
         }
 
-        $sql = "DELETE " . implode(", ", $tables) . " FROM " . $this->data_row->from . " ";
-        $sql .= implode(" ", $this->data_row->joins);
-        foreach ($this->data_row->filter_fields as $field) {
+
+        $sql = "DELETE " . implode(", ", $tables) . " FROM " . $this->from . " ";
+        $sql .= $this->joins();
+        foreach ($this->input_shape->filter_fields as $field) {
             $filter_cols[] =  $field->mapToStmtFilter($field->alias . "." . $field->name);
         }
 
@@ -183,11 +186,61 @@ class StmtBuilder {
     }
 
     function count() {
-        $sql = "SELECT count(" . $this->data_row->alias . "." . $this->data_row->primary_field->name . ") AS 'count' FROM " . $this->data_row->from . " ";
-        $sql .= " " . implode($this->data_row->joins) . " ";
+        if (count($this->output_shape->fields) == 0) {
+            throw new \Error("Can't count with 0 output fields");
+        }
+
+        $col = first($this->output_shape->fields);
+        $sql = "SELECT COUNT (" . $col->alias . "." . $col->name . ") AS 'count' ";
+        $sql .= " FROM " . $this->from . " ";
+        $sql .= " " . $this->joins() . " ";
         $sql .= $this->buildFilter();
         return $sql;
     }
+
+
+    function inputShape($input) {
+        $this->input_shape = $input;
+        return $this;
+    }
+
+
+    function outputShape($output) {
+        $this->output_shape = $output;
+        return $this;
+    }
+
+
+    function from($from, $alias = "") {
+        $this->from = $from;
+        $this->from_alias = $alias;
+        return $this;
+    }
+
+
+    function limit($limit) {
+        $this->limit = $limit;
+        return $this;
+    }
+
+
+    function order($col, $dir = "ASC")
+    {
+        $this->order_by = $col . " " . $dir;
+        return $this;
+    }
+
+    function having($col) {
+        $this->having[] = $col;
+        return $this;
+    }
+
+    function group($group) {
+        $this->group[] = $group;
+        return $this;
+    }
+
+    
   
 }
 
