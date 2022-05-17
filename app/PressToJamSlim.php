@@ -131,6 +131,8 @@ class PressToJamSlim {
                     $contents = json_decode($str, true);
                     if (json_last_error() === JSON_ERROR_NONE) {
                         $self->params->apply($contents);
+                    } else {
+                        $self->blob = $contents;
                     }
                 }
             }
@@ -220,26 +222,41 @@ class PressToJamSlim {
         });
 
 
-        $this->app->patch("/asset/{route}/{name}/{field}[/{id}]", function($request, $response, $args) use ($self) {
+        $this->app->patch("/asset/{name}/{field}/{id}", function($request, $response, $args) use ($self) {
             $name = $args["name"];
             $field = $args["field"];
             $id = $args["id"];
 
-            $data_row = new DataRow($name);
-            $data_row->{"asset" . Factory::camelCase($field)}();
-            $res = StorageHandler::exec($self->pdo, $data_row, "get");
-            $results_handler = new ResultsHandler($data_row);
-            $response = $results_handler->getResult($res);
+            $self->params->data = ["__id"=>$id];
+            $self->params->fields = [$field];
+
+            $model = Factory::createRepo($name, $self->user, $self->pdo, $self->params, $self->hooks);
+            $res = $model->primary();
             $s3writer = Configs\Factory::createS3Writer();
-            $s3writer->push($response->nextField());
+            $s3writer->push($res->$field->export(), $self->params->body);
             return $response;
         });
 
-        $this->app->get("/reference/{route}/{name}/{field}/{id}", function($request, $response, $args) use ($self) {
-            
+        $this->app->get("/asset/{name}/{field}/{id}", function($request, $response, $args) use ($self) {
             $name = $args["name"];
             $field = $args["field"];
             $id = $args["id"];
+
+            $self->params->data = ["__id"=>$id];
+            $self->params->fields = [$field];
+
+            $model = Factory::createRepo($name, $self->user, $self->pdo, $self->params, $self->hooks);
+            $res = $model->primary();
+            $s3writer = Configs\Factory::createS3Writer();
+            echo $s3writer->get($res->$field->export());
+            exit;
+        });
+
+        $this->app->get("/reference/{name}/{field}[/{id}]", function($request, $response, $args) use ($self) {
+            
+            $name = $args["name"];
+            $field = $args["field"];
+            $id = (isset($args["id"])) ? $args["id"] : 0;
 
             $ref = Factory::createReference($name);
             $results = $ref->{ "get" . Factory::camelCase($field) }($id, $self->user, $self->pdo);

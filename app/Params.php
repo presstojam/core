@@ -14,6 +14,7 @@ class Params
     private $children=[];
     private $history;
     private $key=0;
+    protected $blob;
 
     public function __get($name)
     {
