@@ -12,7 +12,7 @@ class APIClient {
     private $referer;
 
     function __construct($domain) {
-        $this->http = new GuzzleHttp\Client(["base_uri"=>rtrim($domain, "/"), 'cookies' => true]);
+        $this->http = new \GuzzleHttp\Client(["base_uri"=>rtrim($domain, "/"), 'cookies' => true]);
     }
 
     function __set($name, $value) {
@@ -44,7 +44,7 @@ class APIClient {
 
         $headers=array('Accept: application/json');
         $headers=[];
-        $headers = array_merge($auth_headers, $this->custom_headers);
+        $headers = array_merge($headers, $this->custom_headers);
         
         if ($this->referer) {
             $headers["REFERER"] = $this->referer;
@@ -74,6 +74,9 @@ class APIClient {
                 throw new Error("API failure for " . $url . ": " . $r->getStatusCode() . " " . $r->getReasonPhrase());
             }
             $r = $this->http->request($method, $url, $params);
+            if ($r->getStatusCode() != 200) {
+                throw new Error("API failure for " . $url . ": " . $r->getStatusCode() . " " . $r->getReasonPhrase());
+            }
         } else if ($r->getStatusCode() == 401) {
             throw new Error("API failure for " . $url . ": 401 Authentication failed");
         } else if ($r->getStatusCode() != 200) {
@@ -82,7 +85,9 @@ class APIClient {
  
         $body = $r->getBody();
 
-        if (strpos($r->getContentType(), "json") !== false) {
+        $content_type = $r->getHeader("Content-Type");
+
+        if (strpos($content_type[0], "json") !== false) {
             $json = json_decode($body, true);
             if ($json === null) {
                 switch (json_last_error()) {
