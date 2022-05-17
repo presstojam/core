@@ -179,6 +179,7 @@ class PressToJamSlim {
             $model = Factory::createRepo($name, $self->user, $self->pdo, $self->params, $self->hooks);
             $model->login($self->params);
             $self->user->save($response);
+            $response->getBody()->write(json_encode("success"));
             return $response;
         })->add(function($request, $handler) use ($self) {
             return $self->validateRoute($request, $handler);

@@ -15,7 +15,9 @@ class Hooks {
 	function __construct($link = "") {
         $hook = $this;
         if ($link) {
-            if (file_exists($link)) include($link);	
+            if (file_exists($link)) {
+                include($link);
+            }
         }
 	}
 	
