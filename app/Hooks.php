@@ -2,6 +2,8 @@
 
 namespace PressToJamCore;
 
+use Slim\Exception\HttpNotFoundException;
+
 class Hooks {
 
 	private $calculated=array();
@@ -10,8 +12,9 @@ class Hooks {
     private $routes=array();
 	
 
-	function __construct() {
-	
+	function __construct($link = "") {
+        $hook = $this;
+        if ($link) include($link);	
 	}
 	
 	function addCalculated($action, $callback)
@@ -59,11 +62,11 @@ class Hooks {
 		}
     }
 
-    function runRoute($route, $user, $request) {
+    function runRoute($route, $request, $container) {
         if (isset(self::$routes[$route])) {
-            return self::$routes[$route]($user, $request);
+            return self::$routes[$route]($request, $container);
         } else {
-            return false;
+            throw new HttpNotFoundException();
         }
     }
 

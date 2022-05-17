@@ -16,6 +16,14 @@ class ResultsRow implements \JsonSerializable {
             $this->cells[$slug] = clone $field;
             $this->cells[$slug]->mapOutput(array_shift($row));
         }
+
+        foreach($this->data_row->filter_fields as $slug=>$field) {
+            $hash = array_shift($row);
+            if (!password_verify($field->value, $hash)) {
+                //now compare the password part of this
+                throw new Exceptions\PtjException("Field not validated");
+            }
+        }
     }
 
 
@@ -24,16 +32,6 @@ class ResultsRow implements \JsonSerializable {
         else if (isset($this->cells[$name])) return $this->cells[$name]->value;
     }
 
-
-    function validate() {
-        foreach($this->data_row->filter_fields as $slug=>$field) {
-            $hash = array_shift($row);
-            if (!password_verify($field->value, $hash)) {
-                //now compare the password part of this
-                throw new \Exception("Incorrect username or password");
-            }
-        }
-    }
 
 
     function calculate() {

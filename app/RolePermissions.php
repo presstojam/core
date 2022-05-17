@@ -19,8 +19,9 @@ class RolePermissions {
     }
 
 
-    function requiresOwner($route) {
-        return in_array($route, $this->owner_groups);
+    function requiresOwner($route, $model, $state) {
+        return false;
+        return $this->owner_groups[$route][$model][$state];
     }
 
 

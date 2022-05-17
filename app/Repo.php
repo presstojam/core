@@ -39,8 +39,8 @@ class Repo extends Model
     }
 
     public function getCount($secure) {
-        $this->setStructure($this->collection, $this->params->to);
-        $cell = $this->createCell($this->collection, "__id");
+        $this->setStructure($this->collections[""], $this->params->to);
+        $cell = $this->createCell($this->collections[""], "__id");
         $cell->func = "COUNT";
         $this->output_shape->addField($cell->slug, $cell);
 
@@ -77,7 +77,6 @@ class Repo extends Model
             throw new Exceptions\PtjException("No database results found");
         }
         $results = new ResultsRow($this->output_shape, $row);
-        $results->validate();
         $results->calculate();
         if ($this->output_shape->children) {
             $this->loadHistory($results);

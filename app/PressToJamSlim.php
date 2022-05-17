@@ -21,12 +21,12 @@ class PressToJamSlim {
     protected $perms;
    
 
-    function __construct($cors = null) {
+    function __construct($custom_link = "", $cors = null) {
         $this->app = AppFactory::create();
               
         //set up all our services here
         $this->pdo = Configs\Factory::createPDO();
-        $this->hooks = new Hooks(__DIR__ . "/custom/custom.php");
+        $this->hooks = new Hooks($custom_link);
         $this->params = new Params();
 
         if (!$cors) {
@@ -63,7 +63,7 @@ class PressToJamSlim {
     function validateRoute($request, $handler) {
 
         $class_name = Factory::createPerms($this->user);
-        $this->perms = new $class_name();
+        $perms = new $class_name();
         
         $routeContext = RouteContext::fromRequest($request);
         $route = $routeContext->getRoute();
@@ -75,13 +75,16 @@ class PressToJamSlim {
         $state = (isset($args["state"])) ? $args["state"] : $method;
 
         if ($state == "model") {
-            if (!$this->perms->hasModelPermission($cat, $model)) {
+            if (!$perms->hasModelPermission($cat, $model)) {
                 throw new Exceptions\UserException(403, "This user does not have authorisation for model " . $model);
             }
-        } else if (!$this->perms->hasPermission($cat, $model, $state, $method)) {
-            throw new Exceptions\UserException(403, "This user does not have authorisation for this route");
+        } else {
+            if (!$perms->hasPermission($cat, $model, $state, $method)) {
+                throw new Exceptions\UserException(403, "This user does not have authorisation for this route");
+            }
+            $this->user->is_owner = $perms->requiresOwner($cat, $model, $state);
         }
-        
+
         return $handler->handle($request);
     }
 
@@ -173,8 +176,9 @@ class PressToJamSlim {
 
         $this->app->post('/data/{route}/{name}/login', function (Request $request, Response $response, $args) use ($self) {
             $name = $args['name'];
-            $model = Factory::createRepo($name, $self->user, $self->pdo, $self->hooks);
+            $model = Factory::createRepo($name, $self->user, $self->pdo, $self->params, $self->hooks);
             $model->login($self->params);
+            $self->user->save($response);
             return $response;
         })->add(function($request, $handler) use ($self) {
             return $self->validateRoute($request, $handler);
@@ -332,6 +336,13 @@ class PressToJamSlim {
                 $self->user->logout($response);
                 return $response;
             });
+        });
+
+
+        $this->app->map(["POST", "GET", "PUT", "DELETE"], '/{routes:.+}', function ($request, $response, $args) {
+            $routeContext = RouteContext::fromRequest($request);
+            $route = $routeContext->getRoute();
+            $self->hooks->runRoute($route, $request, $self);
         });
     }
 
