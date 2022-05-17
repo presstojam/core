@@ -71,16 +71,16 @@ class APIClient {
         if ($r->getStatusCode() == 403) {
             $r = $this->http->put("/core/switch-tokens");
             if ($r->getStatusCode() != 200) {
-                throw new Error("API failure for " . $url . ": " . $r->getStatusCode() . " " . $r->getReasonPhrase());
+                throw new \Exception("API failure for " . $url . ": " . $r->getStatusCode() . " " . $r->getReasonPhrase());
             }
             $r = $this->http->request($method, $url, $params);
             if ($r->getStatusCode() != 200) {
-                throw new Error("API failure for " . $url . ": " . $r->getStatusCode() . " " . $r->getReasonPhrase());
+                throw new \Exception("API failure for " . $url . ": " . $r->getStatusCode() . " " . $r->getReasonPhrase());
             }
         } else if ($r->getStatusCode() == 401) {
-            throw new Error("API failure for " . $url . ": 401 Authentication failed");
+            throw new \Exception("API failure for " . $url . ": 401 Authentication failed");
         } else if ($r->getStatusCode() != 200) {
-            throw new Error("API failure for " . $url . ": " . $r->getStatusCode() . " " . $r->getReasonPhrase());
+            throw new \Exception("API failure for " . $url . ": " . $r->getStatusCode() . " " . $r->getReasonPhrase());
         }
  
         $body = $r->getBody();
@@ -92,13 +92,13 @@ class APIClient {
             if ($json === null) {
                 switch (json_last_error()) {
                 case JSON_ERROR_DEPTH:
-                    throw new Error("API JSON failure for " . $url . ": Maximum stack depth exceeded\n\n" . $body);
+                    throw new \Exception("API JSON failure for " . $url . ": Maximum stack depth exceeded\n\n" . $body);
                 break;
                 case JSON_ERROR_CTRL_CHAR:
-                    throw new Error("API JSON failure for " . $url . ": Unexpected control character found\n\n" . $body);
+                    throw new \Exception("API JSON failure for " . $url . ": Unexpected control character found\n\n" . $body);
                 break;
                 case JSON_ERROR_SYNTAX:
-                    throw new Error("API JSON failure for " . $url . ": Syntax error, malformed JSON\n\n" . $body);
+                    throw new \Exception("API JSON failure for " . $url . ": Syntax error, malformed JSON\n\n" . $body);
                 break;
             }
             }

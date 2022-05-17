@@ -14,7 +14,9 @@ class Hooks {
 
 	function __construct($link = "") {
         $hook = $this;
-        if ($link) include($link);	
+        if ($link) {
+            if (file_exists($link)) include($link);	
+        }
 	}
 	
 	function addCalculated($action, $callback)
