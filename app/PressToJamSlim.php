@@ -106,15 +106,6 @@ class PressToJamSlim {
         });
       
 
-        $this->app->add(function($request, $handler) use ($self) {
-            $self->user = new UserProfile($request);
-            $self->user->user = "accounts";
-            $self->user->id = 1;
-            return $handler->handle($request);
-        });
-
-
-
         $errorMiddleware = $this->app->addErrorMiddleware(true, true, true);
         $errorHandler = $errorMiddleware->getDefaultErrorHandler();
         $errorHandler->forceContentType('application/json');
