@@ -106,6 +106,13 @@ class PressToJamSlim {
         });
       
 
+        $this->app->add(function($request, $handler) use ($self) {
+            $self->user = new UserProfile($request);
+            return $handler->handle($request);
+        });
+
+
+
         $errorMiddleware = $this->app->addErrorMiddleware(true, true, true);
         $errorHandler = $errorMiddleware->getDefaultErrorHandler();
         $errorHandler->forceContentType('application/json');
@@ -149,7 +156,7 @@ class PressToJamSlim {
             return $response;
         });
 
-        $this->app->map(['POST', 'PUT', 'DELETE'], '/data/{route/{name}', function (Request $request, Response $response, $args) use ($self) {
+        $this->app->map(['POST', 'PUT', 'DELETE'], '/data/{route}/{name}', function (Request $request, Response $response, $args) use ($self) {
             $name = $args['name'];
             $method = strtolower($request->getMethod());
         
@@ -161,6 +168,19 @@ class PressToJamSlim {
             return $self->validateRoute($request, $handler);
         });
         
+
+        $this->app->post('/data/{name}/login', function (Request $request, Response $response, $args) use ($self) {
+            $name = $args['name'];
+            $model = Factory::createRepo($name, $self->user, $self->pdo, $self->hooks);
+            $results = $model->login($self->params);
+            $self->user->id = $data->__id;
+            $self->user->user = $name;
+            $self->user->save($response);
+            return $response;
+        })->add(function($request, $handler) use ($self) {
+            return $self->validateRoute($request, $handler);
+        });
+
         $this->app->get('/data/{route}/{name}[/{state}]', function (Request $request, Response $response, $args) use ($self) {
             $name = $args['name'];
             $state = (isset($args["state"])) ? $args["state"] : "get";
@@ -173,14 +193,12 @@ class PressToJamSlim {
             return $self->validateRoute($request, $handler);
         });
 
-
-        $this->app->post('/data/{route}/{name}/login', function (Request $request, Response $response, $args) use ($self) {
+        $this->app->post("/route/{name}/login", function ($request, $response, $args) use ($self) {
             $name = $args['name'];
-            $model = Factory::createRepo($name, $self->user, $self->pdo, $self->hooks);
-            $results = $model->login($self->params);
-            $self->user->id = $data->__id;
-            $self->user->user = $name;
-            $self->user->save($response);
+            $route = Factory::createRoute($name, $self->user, $self->params);
+            $details = $route->login($self->params);
+            $str = json_encode($details);
+            $response->getBody()->write($str);
             return $response;
         })->add(function($request, $handler) use ($self) {
             return $self->validateRoute($request, $handler);

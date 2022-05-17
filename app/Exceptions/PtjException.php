@@ -8,8 +8,9 @@ class PtjException extends \Exception {
     protected $description = "";
     protected $message = "";
 
-    function __construct($msg) {
+    function __construct($msg, $code = null) {
         $this->message = $msg;
+        if ($code) $this->code = $code;
     }
 
     function __get($key) {

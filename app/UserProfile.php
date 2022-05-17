@@ -90,6 +90,7 @@ class UserProfile implements \JsonSerializable {
             ->withExpires(time() + ($this->auth_minutes * 60));
         } else {
             $this->logout();
+            throw new Exceptions\UserException(401, "User not authenticated");
         }
     }
 
