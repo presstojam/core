@@ -171,13 +171,10 @@ class PressToJamSlim {
         });
         
 
-        $this->app->post('/data/{name}/login', function (Request $request, Response $response, $args) use ($self) {
+        $this->app->post('/data/{route}/{name}/login', function (Request $request, Response $response, $args) use ($self) {
             $name = $args['name'];
             $model = Factory::createRepo($name, $self->user, $self->pdo, $self->hooks);
-            $results = $model->login($self->params);
-            $self->user->id = $data->__id;
-            $self->user->user = $name;
-            $self->user->save($response);
+            $model->login($self->params);
             return $response;
         })->add(function($request, $handler) use ($self) {
             return $self->validateRoute($request, $handler);
@@ -195,17 +192,7 @@ class PressToJamSlim {
             return $self->validateRoute($request, $handler);
         });
 
-        $this->app->post("/route/{name}/login", function ($request, $response, $args) use ($self) {
-            $name = $args['name'];
-            $route = Factory::createRoute($name, $self->user, $self->params);
-            $details = $route->login($self->params);
-            $str = json_encode($details);
-            $response->getBody()->write($str);
-            return $response;
-        })->add(function($request, $handler) use ($self) {
-            return $self->validateRoute($request, $handler);
-        });
-
+    
         $this->app->map(['GET','POST','PUT','DELETE'], "/route/{route}/{name}[/{state}]", function ($request, $response, $args) use ($self) {
             $cat = $args["route"];
             $name = $args['name'];
