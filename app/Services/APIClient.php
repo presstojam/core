@@ -5,6 +5,7 @@ namespace PressToJamCore\Services;
 class APIClient {
 
     private $http;
+    private $jar;
     private $headers;
     private $debug = false;
     private $custom_headers=[];
@@ -12,7 +13,8 @@ class APIClient {
     private $referer;
 
     function __construct($domain) {
-        $this->http = new \GuzzleHttp\Client(["base_uri"=>rtrim($domain, "/"), 'cookies' => true]);
+        $this->jar = new \GuzzleHttp\Cookie\CookieJar;
+        $this->http = new \GuzzleHttp\Client(["base_uri"=>rtrim($domain, "/"), 'cookies' => $this->jar]);
     }
 
     function __set($name, $value) {
@@ -84,6 +86,7 @@ class APIClient {
         }
  
         $body = $r->getBody();
+
         $content_type = $r->getHeader("Content-Type");
 
         if (strpos($content_type[0], "json") !== false) {

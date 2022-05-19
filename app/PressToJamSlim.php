@@ -19,6 +19,7 @@ class PressToJamSlim {
     protected $params;
     protected $cors;
     protected $perms;
+    protected $logger;
    
 
     function __construct($custom_link = "", $cors = null) {
@@ -35,6 +36,11 @@ class PressToJamSlim {
         } else {
             $this->cors = $cors;
         }
+    }
+
+
+    function setLogger($logger) {
+        $this->logger = $logger;
     }
 
 
@@ -178,7 +184,7 @@ class PressToJamSlim {
             $name = $args['name'];
             $model = Factory::createRepo($name, $self->user, $self->pdo, $self->params, $self->hooks);
             $model->login($self->params);
-            $self->user->save($response);
+            $response = $self->user->save($response);
             $response->getBody()->write(json_encode("success"));
             return $response;
         })->add(function($request, $handler) use ($self) {

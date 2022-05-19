@@ -43,7 +43,7 @@ class UserProfile implements \JsonSerializable {
     }
 
 
-    function saveCookie($name, $value, $expires) {
+    function createCookie($name, $value, $expires) {
         return \Dflydev\FigCookies\SetCookie::create($name)
         ->withValue($value)
         ->withExpires($expires)
@@ -68,16 +68,15 @@ class UserProfile implements \JsonSerializable {
         $refresh_token = $token->encode($payload, $this->refresh_minutes );
 
         $cookie_expires = time() + 86400; //24 hours update
-      
-        FigResponseCookies::set(
-            $response, 
-            $this->saveCookie("api-auth", $access_token, $cookie_expires)
-        );
 
-        FigResponseCookies::set(
-            $response, 
-            $this->saveCookie("api-refresh", $refresh_token, $cookie_expires)
-        );
+        $cookies = [];
+        $cookies[] = $this->createCookie("api-auth", $access_token, $cookie_expires);
+        $cookies[] = $this->createCookie("api-refresh", $refresh_token, $cookie_expires);
+
+        $set = new \Dflydev\FigCookies\SetCookies($cookies);
+        $response = $set->renderIntoSetCookieHeader($response);
+      
+        return $response;
     }
 
 
