@@ -79,6 +79,10 @@ class DataShape {
         foreach($this->fields as $slug=>$field) {
             $res["fields"][$slug] = $field->toSchema();
         }
+
+        foreach($this->filter_fields as $slug=>$field) {
+            $res["fields"][$slug] = $field->toSchema();
+        }
         return $res;
     }
 

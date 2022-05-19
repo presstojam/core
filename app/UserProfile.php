@@ -13,6 +13,7 @@ class UserProfile implements \JsonSerializable {
     private $refresh_minutes = 86400;
     private $auth_minutes = 15;
     private $is_owner = true;
+    private $is_expired = false;
 
 
     function __construct($request)
@@ -23,7 +24,7 @@ class UserProfile implements \JsonSerializable {
             $token = Configs\Factory::createJWT();
             $payload = $token->decode($auth->getValue());
             if (!$payload) {
-                throw new Exceptions\UserException(401, "The access token has expired");
+                $this->is_expired = true;
             } else {
                 $this->user = $payload->user;
                 $this->id = $payload->id;
@@ -80,25 +81,39 @@ class UserProfile implements \JsonSerializable {
     }
 
 
-    function switchTokens($request) {
+    function switchTokens($request, $response) {
         $refresh = FigRequestCookies::get($request, "api-refresh");
         $auth = FigRequestCookies::get($request, "api-auth");
         $token = Configs\Factory::createJWT();
-        $payload = $token->decode($refresh);
+        $payload = $token->decode($refresh->getValue());
+        $payload = json_decode(json_encode($payload), true);
         if ($payload) {
-            $payload = $token->encode($payload, 15);
-            return $auth->withValue($payload)
-            ->withExpires(time() + ($this->auth_minutes * 60));
+            $access_token = $token->encode($payload, $this->auth_minutes);
+
+            $cookie_expires = time() + 86400; //24 hours update
+            $cookies[] = $this->createCookie("api-auth", $access_token, $cookie_expires);
+
+            $set = new \Dflydev\FigCookies\SetCookies($cookies);
+            $response = $set->renderIntoSetCookieHeader($response);
+            return $response;
         } else {
-            $this->logout();
+            //$response = $this->logout($response);
             throw new Exceptions\UserException(401, "User not authenticated");
         }
     }
 
 
     function logout($response) {
-        FigResponseCookies::remove($response, "api-auth");
-        FigResponseCookies::remove($response, "api-refresh");
+       
+        $cookie_expires = 0;
+        $cookies = [];
+        $cookies[] = $this->createCookie("api-auth", "", $cookie_expires);
+        $cookies[] = $this->createCookie("api-refresh", "", $cookie_expires);
+
+        $set = new \Dflydev\FigCookies\SetCookies($cookies);
+        $response = $set->renderIntoSetCookieHeader($response);
+      
+        return $response;
     }
 
     function jsonSerialize() {
@@ -106,7 +121,8 @@ class UserProfile implements \JsonSerializable {
             "user" => $this->user,
             "id" => $this->id,
             "lang" => $this->lang,
-            "role" => $this->role
+            "role" => $this->role,
+            "is_expired" => $this->is_expired
         ];
     }
 

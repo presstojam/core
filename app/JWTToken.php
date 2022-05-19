@@ -14,7 +14,7 @@ class JWTToken {
     }
 
 
-    function encode($payload, int $lifetime_minutes) {
+    function encode(array $payload, int $lifetime_minutes) {
         $issuedAt   = new \DateTimeImmutable();
         $expire     = $issuedAt->modify('+' . $lifetime_minutes . ' minutes')->getTimestamp(); 
         $payload = array_merge([

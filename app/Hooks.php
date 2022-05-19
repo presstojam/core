@@ -70,7 +70,7 @@ class Hooks {
         if (isset(self::$routes[$route])) {
             return self::$routes[$route]($request, $container);
         } else {
-            throw new HttpNotFoundException();
+            throw new HttpNotFoundException($request);
         }
     }
 
