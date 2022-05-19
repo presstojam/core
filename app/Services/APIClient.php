@@ -84,7 +84,6 @@ class APIClient {
         }
  
         $body = $r->getBody();
-
         $content_type = $r->getHeader("Content-Type");
 
         if (strpos($content_type[0], "json") !== false) {

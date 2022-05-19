@@ -66,15 +66,17 @@ class UserProfile implements \JsonSerializable {
         $token = Configs\Factory::createJWT();
         $access_token = $token->encode($payload, $this->auth_minutes);
         $refresh_token = $token->encode($payload, $this->refresh_minutes );
+
+        $cookie_expires = time() + 86400; //24 hours update
       
         FigResponseCookies::set(
             $response, 
-            $this->saveCookie("api-auth", $access_token, time() + ($this->auth_minutes * 60))
+            $this->saveCookie("api-auth", $access_token, $cookie_expires)
         );
 
         FigResponseCookies::set(
             $response, 
-            $this->saveCookie("api-refresh", $refresh_token, time() + ($this->refresh_minutes * 60))
+            $this->saveCookie("api-refresh", $refresh_token, $cookie_expires)
         );
     }
 
