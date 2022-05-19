@@ -6,6 +6,7 @@ class ShapeHandler
 {
     protected $user;
     protected $input_shape;
+    protected $output_shape;
     protected $collections = [];
 
 

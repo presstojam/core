@@ -86,7 +86,7 @@ class PressToJamSlim {
             }
         } else {
             if (!$perms->hasPermission($cat, $model, $state, $method)) {
-                throw new Exceptions\UserException(403, "This user does not have authorisation for this route");
+                throw new Exceptions\UserException(403, "The user type " . $this->user->user . " does not have authorisation for route " . $cat . "/" . $model . "/" . $state);
             }
             $this->user->is_owner = $perms->requiresOwner($cat, $model, $state);
         }
@@ -245,8 +245,13 @@ class PressToJamSlim {
 
             $model = Factory::createRepo($name, $self->user, $self->pdo, $self->params, $self->hooks);
             $res = $model->primary();
+            
             $s3writer = Configs\Factory::createS3Writer();
-            echo $s3writer->get($res->$field->export());
+            try {
+                echo $s3writer->get($res->$field);
+            } catch(\Exception $e) {
+                echo $e->getMessage();
+            }
             exit;
         });
 
