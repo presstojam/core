@@ -191,7 +191,7 @@ class StmtBuilder {
             $filter_cols[] =  $field->mapToStmtFilter($field->alias . "." . $field->name);
         }
 
-        $sql .= " WHERE " . implode(", ", $filter_cols);
+        $sql .= " WHERE " . implode(" AND ", $filter_cols);
         return $sql;
     }
 

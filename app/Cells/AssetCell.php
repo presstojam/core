@@ -48,6 +48,7 @@ class AssetCell extends MetaCell {
     }
 
     function toArg($val) {
+        if (!$val) return;
         if (!isset($val['name'])) {
             $key = $this->uniqueKey($val['ext']);
             $this->writeFile($key, ""); //reserve the bucket space
