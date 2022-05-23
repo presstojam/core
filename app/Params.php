@@ -36,13 +36,17 @@ class Params
     public function apply($params)
     {
         foreach ($params as $key=>$val) {
-            if ($key == "__id" or $key == "__parentid") {
+            if ($key == "--id" or $key == "--parentid") {
                 $this->data[$key] = $val;
                 continue;
             }
         
-            $decoded_val = json_decode($val);
-            if ($decoded_val !== null) $val = $decoded_val;
+            if (!is_array($val)) {
+                $decoded_val = json_decode($val);
+                if ($decoded_val !== null) {
+                    $val = $decoded_val;
+                }
+            }
             
             if (strpos($key, "__") === 0) {
                 $key = substr($key, 2);
