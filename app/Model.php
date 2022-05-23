@@ -32,9 +32,17 @@ class Model extends ShapeHandler {
         $stmt_builder = new StmtBuilder();
         $stmt_builder->inputShape($this->input_shape)
             ->outputShape($this->output_shape)
-            ->from($this->collections[""]->table . " " . $this->collections[""]->alias);
+            ->from($this->collections[""]->table, $this->collections[""]->alias);
 
         return $stmt_builder;
+    }
+
+    function applyChildren($collection) {
+        $id = $collection->primary();
+        $this->input_shape->addRelationship($collection->slug . "--id", $id);
+        foreach($id->reference as $ref) {
+            $this->applyChildren($ref);
+        }
     }
 
 }

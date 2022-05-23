@@ -117,7 +117,7 @@ class ShapeHandler
         $id = $collection->primary();
         $refs = [];
         foreach($id->reference as $child) {
-            if (in_array($chlid->slug, $children)) {
+            if (in_array($child->slug, $children)) {
                 $refs[] = $child;
             }
         }

@@ -53,14 +53,22 @@ class StmtBuilder {
                 $join_str = "INNER JOIN " . $field->reference->table . " " . $field->reference->alias . " ON ";
                 $join_str .= " " . $field->alias . "." . $field->name . " = " . $primary->alias . "." . $primary->name;
                 $joins[] = $join_str;
+            } else if ($field->is_primary) {
+                foreach($field->reference as $ref) {
+                    $parent = $ref->parent();
+                    $join_str = "LEFT OUTER JOIN " . $ref->table . " " . $ref->alias . " ON ";
+                    $join_str .= " " . $field->alias . "." . $field->name . " = " . $parent->alias . "." . $parent->name;
+                    $joins[] = $join_str;
+                }
             } else {
                 if ($field->required) {
                     $join_str = "INNER JOIN ";
                 } else {
                     $join_str = "LEFT OUTER JOIN ";
                 }
+
                 $primary = $field->reference->primary();
-                $join_str .= $field->reference->tabel . " " . $field->reference->alias . " ON ";
+                $join_str .= $field->reference->table . " " . $field->reference->alias . " ON ";
                 $join_str .= " " . $field->alias . "." . $field->name . " = " . $primary->alias . "." . $primary->name;
                 $joins[] = $join_str;
             }
@@ -106,7 +114,7 @@ class StmtBuilder {
             throw new \Error("No cols selected for statement ");
         }
         $sql = "SELECT " . implode(",", $data_cols);
-        $sql .= " FROM " . $this->from;
+        $sql .= " FROM " . $this->from . " " . $this->from_alias;
         $sql .= " " . $this->joins() . " ";
         $sql .= $this->buildFilter();
         //echo $sql;
@@ -129,7 +137,7 @@ class StmtBuilder {
             $data_cols[] = $field->alias . "." . $field->name . " = ?";
         }
 
-        $sql = "UPDATE " . $this->from . " ". $this->joins() . " SET " . implode(",", $data_cols);
+        $sql = "UPDATE " . $this->from . " ". $this->from_alias . " " . $this->joins() . " SET " . implode(",", $data_cols);
 
         $filter_fields = $this->input_shape->filter_fields;
         foreach ($filter_fields as $field) {
@@ -167,17 +175,17 @@ class StmtBuilder {
         $tables = [];
         $tables[] = $this->from_alias;
 
-        foreach($this->output_shape->relationship_fields as $field) {
-            $tables[] = $field->reference;
+        foreach($this->input_shape->relationship_fields as $field) {
             if ($field->is_primary) {
-                foreach($field->references as $ref) {
+                foreach($field->reference as $ref) {
                    $tables[] = $ref->alias;
                 }
             }
         }
 
+     
 
-        $sql = "DELETE " . implode(", ", $tables) . " FROM " . $this->from . " ";
+        $sql = "DELETE " . implode(", ", $tables) . " FROM " . $this->from . " " . $this->from_alias . " ";
         $sql .= $this->joins();
         foreach ($this->input_shape->filter_fields as $field) {
             $filter_cols[] =  $field->mapToStmtFilter($field->alias . "." . $field->name);

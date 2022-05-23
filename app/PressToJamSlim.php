@@ -275,14 +275,20 @@ class PressToJamSlim {
             return $self->validateModel($request, $handler);
         });
 
-        $this->app->get("/reference/{name}/{field}[/{id}]", function($request, $response, $args) use ($self) {
+        $this->app->get("/reference/{name}/{field}", function($request, $response, $args) use ($self) {
             
             $name = $args["name"];
             $field = $args["field"];
-            $id = (isset($args["id"])) ? $args["id"] : 0;
-
+            if (isset($self->params->data["--id"])) {
+                $id= $self->params->data["--id"];
+                $is_parent = false;
+            } else {
+                $id = $self->params->data["--parentid"];
+                $is_parent = true;
+            }
+           
             $ref = Factory::createReference($name);
-            $results = $ref->{ "get" . Factory::camelCase($field) }($id, $self->user, $self->pdo);
+            $results = $ref->{ "get" . Factory::camelCase($field) }($id, $self->user, $self->pdo, $is_parent);
         
             $response->getBody()->write(json_encode($results));
             return $response;
