@@ -12,6 +12,7 @@ class RoutePoint implements \JsonSerializable {
     protected $perms = [];
     protected $refs = [];
     protected $reverse_refs = [];
+    protected $dictionary;
     
 
     function __construct($name) {
@@ -43,6 +44,11 @@ class RoutePoint implements \JsonSerializable {
     function addPerm($perm) {
         $this->perms[] = $perm;
     }
+
+    function applyDictionary($dict)
+    {
+        $this->dictionary = $dict;
+    }
    
     function jsonSerialize() {
         $arr=[
@@ -52,7 +58,8 @@ class RoutePoint implements \JsonSerializable {
             "perms"=>$this->perms, 
             "children"=>$this->children, 
             "refs"=>$this->refs,
-            "reverse_refs"=>$this->reverse_refs
+            "reverse_refs"=>$this->reverse_refs,
+            "dictionary"=>$this->dictionary
         ];
         return $arr;
     }

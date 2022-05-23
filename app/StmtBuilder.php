@@ -31,6 +31,7 @@ class StmtBuilder {
         if (count($filter_cols) > 0) {
             $sql .= " WHERE " . implode(" AND ", $filter_cols);
         }
+
     
         if (count($this->order_by) > 0) {
             $sql .= " ORDER BY " . implode(", ", $this->order_by) . " ";
@@ -66,27 +67,28 @@ class StmtBuilder {
         }
 
 
-        foreach($this->output_shape->relationship_fields as $field) {
-            if ($field->is_primary) {
-                foreach($field->references as $ref) {
-                    $parent = $field->reference->parent();
-                    $join_str = "LEFT OUTER JOIN " . $ref->table . " " . $ref->alias . " ON ";
-                    $join_str .= " " . $field->alias . "." . $field->name . " = " . $parent->alias . "." . $parent->name;
+        if ($this->output_shape) {
+            foreach ($this->output_shape->relationship_fields as $field) {
+                if ($field->is_primary) {
+                    foreach ($field->references as $ref) {
+                        $parent = $field->reference->parent();
+                        $join_str = "LEFT OUTER JOIN " . $ref->table . " " . $ref->alias . " ON ";
+                        $join_str .= " " . $field->alias . "." . $field->name . " = " . $parent->alias . "." . $parent->name;
+                        $joins[] = $join_str;
+                    }
+                } else {
+                    if ($field->required) {
+                        $join_str = "INNER JOIN ";
+                    } else {
+                        $join_str = "LEFT OUTER JOIN ";
+                    }
+                    $primary = $field->reference->primary();
+                    $join_str .= $field->reference->tabel . " " . $field->reference->alias . " ON ";
+                    $join_str .= " " . $field->alias . "." . $field->name . " = " . $primary->alias . "." . $primary->name;
                     $joins[] = $join_str;
                 }
-            } else {
-                if ($field->required) {
-                    $join_str = "INNER JOIN ";
-                } else {
-                    $join_str = "LEFT OUTER JOIN ";
-                }
-                $primary = $field->reference->primary();
-                $join_str .= $field->reference->tabel . " " . $field->reference->alias . " ON ";
-                $join_str .= " " . $field->alias . "." . $field->name . " = " . $primary->alias . "." . $primary->name;
-                $joins[] = $join_str;
             }
         }
-
         return implode (" ", $joins);
     }
 

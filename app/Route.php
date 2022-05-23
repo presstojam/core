@@ -31,6 +31,14 @@ class Route extends ShapeHandler
         }
         
         $this->setFields($this->output_shape, $fields);
+
+        $fields =$this->output_shape->fields;
+        foreach($fields as $slug=>$field) {
+            if (strpos($slug, "--owner") !== false) {
+                unset($fields[$slug]);
+            }
+        }
+        $this->output_shape->fields = $fields;
     }
 
 }

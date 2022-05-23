@@ -2,7 +2,7 @@
 
 namespace PressToJamCore;
 
-class DictionaryChapter
+class DictionaryField implements \JsonSerializable
 {
     public $label;
     public $hint;
@@ -10,8 +10,9 @@ class DictionaryChapter
     public $errors;
     public $placeholder;
     public $actions = [];
+    
 
-    function toArr() {
+    function jsonSerialize() {
         $arr = [];
         if ($this->label) $arr["label"] = $this->label;
         if ($this->actions) $arr["actions"] = $this->actions;
@@ -21,54 +22,33 @@ class DictionaryChapter
         if ($this->placeholder) $arr["placeholder"] = $this->placeholder;
         return $arr;
     }
-}
+};
 
 
-class Dictionary {
+class Dictionary implements \JsonSerializable {
 
-    protected $chapter;
+    protected $label = "";
+    protected $title = "";
+    protected $hint = "";
+    protected $errors = [];
+    protected $actions = [];
     protected $fields=[];
     protected $children = [];
-    protected $siblings = [];
-    protected $states = [];
-
+    protected $parent = "";
+    public $states = [];
     
-    function applyToRoute($route, $method) {
 
-        $route->label = $this->chapter->label;
-
-        foreach ($this->siblings as $slug=>$label) {
-            $route->updateSibling($slug, $label);
-        }
-
-        foreach ($this->children as $slug=>$label) {
-            $route->updateChild($slug, $label);
-        }
-        
-        foreach($this->chapter->actions as $key=>$label) {
-            $route->updateAction($key, $label);
-        }
-
-        $fields = $route->fields;
-     
-        foreach($this->fields as $slug=>$field) {
-            if (isset($fields[$slug])) {
-                $fields[$slug] = array_merge($fields[$slug], $field->toArr());
-            }
-        }
-        $route->fields = $fields;
-
-        /*
-        $route->applyToRoute($this->states[$method]["chapter"]);
-            $state->applyDictionary($this->states[$method]["chapter"]);
-            $fields = $state->fields;
-            foreach($this->fields as $slug=>$field) {
-                if (isset($fields[$slug])) {
-                    $fields[$slug] = array_merge($fields[$slug], $field->toArr());
-                }
-            }
-            $state->fields = $fields;
-        }
-        */
-    }
+    function jsonSerialize() {
+        return [
+            "label"=>$this->label,
+            "title"=>$this->title,
+            "hint"=>$this->hint,
+            "errors"=>$this->errors,
+            "actions"=>$this->actions,
+            "fields"=>$this->fields,
+            "children"=>$this->children,
+            "parent"=>$this->parent,
+            "states"=>$this->states
+        ];
+    }   
 }

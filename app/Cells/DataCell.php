@@ -70,16 +70,55 @@ class DataCell {
 
     function map($val) {
         if ($this->locked) return;
-        $val = $this->meta_field->map($val);
-        $validate = $this->meta_field->validate($val);
-        if ($validate != ValidationRules::OK) {
-            return $validate;
+        if (is_array($val)) {
+            foreach($val as $v) {
+                $v = $this->meta_field->map($v);
+                $validate = $this->meta_field->validate($v);
+                if ($validate != ValidationRules::OK) {
+                    return $validate;
+                }
+            }
+        } else {
+            $val = $this->meta_field->map($val);
+            $validate = $this->meta_field->validate($val);
+            if ($validate != ValidationRules::OK) {
+                return $validate;
+            }
         }
         $this->value = $val;
+        $this->setType();
         if ($this->meta_field->immutable) {
             $this->locked = true;
         }
     }
 
+
+    function mapToStmtFilter($col) {
+        if (is_array($this->value)) {
+            $cols = [];
+            foreach($this->value as $v) {
+                $cols[] = $this->meta_field->mapToStmtFilter($col);
+            }
+            if (count($cols) > 0) {
+                return "(" . implode(" OR ", $cols) . ")";
+            } else {
+                return "";
+            }
+        } else {
+            return $this->meta_field->mapToStmtFilter($col);
+        }
+    }
+
+    function toArg() {
+        if (is_array($this->value)) {
+            $vals = [];
+            foreach($this->value as $v) {
+                $vals[] = $this->meta_field->toArg($v);
+            }
+            return $vals;
+        } else {
+            return $this->meta_field->toArg($this->value);
+        }
+    }
  
 }

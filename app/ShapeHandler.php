@@ -20,11 +20,13 @@ class ShapeHandler
     function getCollectionName($slug) {
         $pos = strripos($slug, "/");
         if ($pos === false) return "";
-        else return substr($slug, 0, $pos + 1);
+        else return substr($slug, 0, $pos + 1); //return full slug with trailing slash
     }
 
     function getFieldName($slug) {
-        return substr($slug, strripos($slug, "/")); 
+        $pos = strripos($slug, "/");
+        if ($pos === false) return $slug;
+        return substr($slug, $pos + 1); 
     }
 
 
@@ -98,13 +100,12 @@ class ShapeHandler
     {
         $this->collections[$collection->slug] = $collection;
         if (!$this->output_shape) $this->output_shape = new DataShape();
-    
-        if ($to and $to != $collection->slug) {
+        if ($to and $to . "/" != $collection->slug) {
             if (!$collection->hasParent()) return;
-
             $parent = $collection->parent();
             $this->input_shape->addRelationship($collection->slug . $parent->slug, $parent);
             $this->setStructure($parent->reference, $to);
+            $this->collections[$collection->slug] = $collection;
         }
     }
 

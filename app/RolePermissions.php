@@ -6,22 +6,20 @@ class RolePermissions {
     protected $perms =[];
     protected $owner_groups = [];
 
-    function hasPermission($route, $model, $state) {
-        if (!isset($this->perms[$route])) return false;
-        if (!isset($this->perms[$route][$model])) return false;
-        if (isset($this->perms[$route][$model][$state])) return true;
+    function hasPermission($model, $state) {
+        if (!isset($this->perms[$model])) return false;
+        if (isset($this->perms[$model][$state])) return true;
         return false;        
     }
 
 
-    function hasModelPermission($route, $model) {
-        return isset($this->perms[$route][$model]);     
+    function hasModelPermission($model) {
+        return isset($this->perms[$model]);     
     }
 
 
-    function requiresOwner($route, $model, $state) {
-        return false;
-        return $this->owner_groups[$route][$model][$state];
+    function requiresOwner($route) {
+        return in_array($route, $this->owner_groups);
     }
 
 

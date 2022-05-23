@@ -82,14 +82,34 @@ class PressToJamSlim {
         $state = (isset($args["state"])) ? $args["state"] : $method;
 
         if ($state == "model") {
-            if (!$this->perms->hasModelPermission($cat, $model)) {
+            if (!$this->perms->hasModelPermission($model)) {
                 throw new Exceptions\UserException(403, "This user does not have authorisation for model " . $model);
             }
         } else {
-            if (!$this->perms->hasPermission($cat, $model, $state, $method)) {
+            if (!$this->perms->hasPermission($model, $state, $method)) {
                 throw new Exceptions\UserException(403, "The user type " . $this->user->user . " does not have authorisation for route " . $cat . "/" . $model . "/" . $state);
             }
             $this->user->is_owner = $this->perms->requiresOwner($cat, $model, $state);
+        }
+
+        return $handler->handle($request);
+    }
+
+
+    function validateModel($request, $handler) {
+
+        $this->user = new UserProfile($request);
+        $class_name = Factory::createPerms($this->user);
+        $this->perms = new $class_name();
+        
+        $routeContext = RouteContext::fromRequest($request);
+        $route = $routeContext->getRoute();
+
+        $model = $route->getArgument("name");
+       
+
+        if (!$this->perms->hasModelPermission($model)) {
+            throw new Exceptions\UserException(403, "This user does not have authorisation for model " . $model);
         }
 
         return $handler->handle($request);
@@ -167,7 +187,7 @@ class PressToJamSlim {
             $method = strtolower($request->getMethod());
         
             $model = Factory::createModel($name, $self->user, $self->pdo, $self->params, $self->hooks);
-            $results = $model->$state($self->params);
+            $results = $model->$method($self->params);
             $response->getBody()->write(json_encode($results));
             return $response;
         })->add(function($request, $handler) use ($self) {
@@ -185,6 +205,7 @@ class PressToJamSlim {
         })->add(function($request, $handler) use ($self) {
             return $self->validateRoute($request, $handler);
         });
+
 
         $this->app->get('/data/{route}/{name}[/{state}]', function (Request $request, Response $response, $args) use ($self) {
             $name = $args['name'];
@@ -220,7 +241,7 @@ class PressToJamSlim {
             $field = $args["field"];
             $id = $args["id"];
 
-            $self->params->data = ["__id"=>$id];
+            $self->params->data = ["--id"=>$id];
             $self->params->fields = [$field];
 
             $model = Factory::createRepo($name, $self->user, $self->pdo, $self->params, $self->hooks);
@@ -237,7 +258,7 @@ class PressToJamSlim {
             $field = $args["field"];
             $id = $args["id"];
 
-            $self->params->data = ["__id"=>$id];
+            $self->params->data = ["--id"=>$id];
             $self->params->fields = [$field];
 
             $model = Factory::createRepo($name, $self->user, $self->pdo, $self->params, $self->hooks);
@@ -251,7 +272,7 @@ class PressToJamSlim {
             }
             exit;
         })->add(function($request, $handler) use ($self) {
-            return $self->validateRoute($request, $handler);
+            return $self->validateModel($request, $handler);
         });
 
         $this->app->get("/reference/{name}/{field}[/{id}]", function($request, $response, $args) use ($self) {
@@ -266,7 +287,17 @@ class PressToJamSlim {
             $response->getBody()->write(json_encode($results));
             return $response;
         })->add(function($request, $handler) use ($self) {
-            return $self->validateRoute($request, $handler);
+            return $self->validateModel($request, $handler);
+        });
+
+        $this->app->get("/dictionary/{name}", function($request, $response, $args) use ($self) {
+            $lang = new \PressToJam\Dictionary\Languages();
+            if ($this->user->lang) $lang->change($this->user->lang);
+            $dict = $lang->buildDictionary(Factory::camelCase($args["name"]));
+            $response->getBody()->write(json_encode($dict));
+            return $response;        
+        })->add(function($request, $handler) use ($self) {
+            return $self->validateModel($request, $handler);
         });
 
         $this->app->map(["POST", "PUT"], "/import/{name}", function($request, $response, $args) use ($self) {
@@ -285,8 +316,33 @@ class PressToJamSlim {
             $this->app->get("/debuguser", function($request, $response, $args) use ($self) {
                 return $response;
             });
-        
         }
+
+
+        $this->app->group("/nav", function (RouteCollectorProxy $group) use ($self) {
+            $group->get("/route-points/{route}/{name}", function($request, $response, $args) use ($self) {
+                $route = $args["route"];
+                $model = $args["name"];
+                $profile = Factory::createNav($self->user);
+                $route = $profile->getRoutePoint(Factory::camelCase($route), Factory::camelCase($model));
+                $lang = new \PressToJam\Dictionary\Languages();
+                if ($self->user->lang) $lang->change($self->user->lang);
+                $dict = $lang->buildDictionary(Factory::camelCase($args["name"]));
+                $route->applyDictionary($dict);
+                $response->getBody()->write(json_encode($route));
+                return $response;
+            })->add(function($request, $handler) use ($self) {
+                return $self->validateModel($request, $handler);
+            });
+
+
+            $group->get("/site-map", function($request, $response) {
+                $user = new UserProfile($request);
+                $profile = Factory::createNav($user);
+                $response->getBody()->write(json_encode($profile->getNav()));
+                return $response;
+            });
+        });
 
         $this->app->group("/core", function (RouteCollectorProxy $group) use ($self) {
             
@@ -328,15 +384,7 @@ class PressToJamSlim {
                 return $response;
             });
 
-            $group->get("/dictionary", function (Request $request, Response $response, $args) use ($self) {
-                $lang = new \PressToJam\Dictionary\Languages();
-                $user = new UserProfile($request);
-                $dictionary = $user->getDictionary();
-                $response->getBody()->write(json_encode($dictionary));
-                return $response;
-            });
-
-            
+                   
             $group->post("/change-language", function (Request $request, Response $response, $args) use ($self) {
                 $params = $request->getQueryParams();
                 $user = new UserProfile($request);
@@ -346,12 +394,6 @@ class PressToJamSlim {
                 return $response;
             });
 
-            $group->get("/site-map", function($request, $response) {
-                $user = new UserProfile($request);
-                $profile = Factory::createNav($user);
-                $response->getBody()->write(json_encode($profile->getNav()));
-                return $response;
-            });
             
             $group->post("/logout", function (Request $request, Response $response, $args) {
                 $user = new UserProfile($request);

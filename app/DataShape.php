@@ -68,8 +68,11 @@ class DataShape {
         }
 
         foreach($this->filter_fields as $field) {
-            $args[] = $field->toArg();
+            $cargs = $field->toArg();
+            if (is_array($cargs)) $args = array_merge($args, $cargs);
+            else $args[] = $field->toArg();
         }
+
         return $args;
     }
 
