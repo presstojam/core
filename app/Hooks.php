@@ -23,52 +23,52 @@ class Hooks {
 	
 	function addCalculated($action, $callback)
 	{
-       self::$calculated[$action] = $callback;
+       $this->calculated[$action] = $callback;
 	}
 
     function addActuators($action, $callback)
 	{
-        self::$actuators[$action] = $callback;
+        $this->actuators[$action] = $callback;
 	}
 
     function addCalculatedAssets($action, $callback)
 	{
-        self::$calculated_assets[$action] = $callback;
+        $this->calculated_assets[$action] = $callback;
 	}
 	
     function addRoute($route, $callback) {
-        self::$routes[$route] = $callback;
+        $this->routes[$route] = $callback;
     }
 	
 	function doCalculate($action, $obj)
 	{
-		if (isset(self::$calculated[$action]))
+		if (isset($this->calculated[$action]))
 		{
-            $func = self::$calculated[$action];
+            $func = $this->calculated[$action];
             $func($obj);
 		}
 	}
 
     function doActuator($action, $model, $orig = null)
 	{
-		if (isset(self::$actuators[$action]))
+		if (isset($this->actuators[$action]))
 		{
-            $func = self::$actuators[$action];
+            $func = $this->actuators[$action];
             $func($model, $orig);
 		}
 	}
 
     function doCalculateAsset($action, $obj) {
-        if (isset(self::$calculated_assets[$action]))
+        if (isset($this->calculated_assets[$action]))
 		{
-            $func = self::$calculated_assets[$action];
+            $func = $this->calculated_assets[$action];
             $func($obj);
 		}
     }
 
-    function runRoute($route, $request, $container) {
-        if (isset(self::$routes[$route])) {
-            return self::$routes[$route]($request, $container);
+    function runRoute($route, $request, $response, $container) {
+        if (isset($this->routes[$route])) {
+            return $this->routes[$route]($request, $response, $container);
         } else {
             throw new HttpNotFoundException($request);
         }

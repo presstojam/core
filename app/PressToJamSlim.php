@@ -32,7 +32,7 @@ class PressToJamSlim {
 
         if (!$cors) {
             $this->cors = new Cors();
-            $this->cors->origin = (isset($_SERVER['HTTP_ORIGIN'])) ? $_SERVER['HTTP_ORIGIN'] : 0;
+            $this->cors->origin = (isset($_SERVER['HTTP_REFERER'])) ? trim($_SERVER['HTTP_REFERER'], "/") : 0;
         } else {
             $this->cors = $cors;
         }
@@ -413,7 +413,7 @@ class PressToJamSlim {
         $this->app->map(["POST", "GET", "PUT", "DELETE"], '/{routes:.+}', function ($request, $response, $args) use ($self) {
             $routeContext = RouteContext::fromRequest($request);
             $route = $routeContext->getRoute();
-            $self->hooks->runRoute($route, $request);
+            return $self->hooks->runRoute($route, $request, $response, $self);
         });
     }
 
