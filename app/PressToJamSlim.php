@@ -38,6 +38,10 @@ class PressToJamSlim {
         }
     }
 
+    function __get($name) {
+        if (property_exists($this, $name)) return $this->$name;
+    }
+
 
     function setLogger($logger) {
         $this->logger = $logger;
