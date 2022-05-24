@@ -14,7 +14,9 @@
         "aws/aws-sdk-php": "^3.176",
         "firebase/php-jwt": "^6.0",
         "dflydev/fig-cookies": "^3.0.0",
-        "slim/slim" : "^4.10.0"
+        "slim/slim" : "^4.10.0",
+        "monolog/monolog":"^v2.6.0",
+        "guzzlehttp/guzzle":"^7.0"
     },
     "autoload" : {
         "psr-4" : {

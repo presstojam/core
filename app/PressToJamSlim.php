@@ -419,6 +419,8 @@ class PressToJamSlim {
 
 
     function run() {
+        $this->initMiddleware();
+        $this->addRoutes();
         $this->app->run();
     }
 
