@@ -410,10 +410,8 @@ class PressToJamSlim {
         });
 
 
-        $this->app->map(["POST", "GET", "PUT", "DELETE"], '/{routes:.+}', function ($request, $response, $args) use ($self) {
-            $routeContext = RouteContext::fromRequest($request);
-            $route = $routeContext->getRoute();
-            return $self->hooks->runRoute($route, $request, $response, $self);
+        $this->app->map(["POST", "GET", "PUT", "DELETE"], '/hooks/{route}', function ($request, $response, $args) use ($self) {
+            return $self->hooks->runRoute($args["route"], $request, $response, $self);
         });
     }
 
