@@ -15,7 +15,6 @@
         "firebase/php-jwt": "^6.0",
         "dflydev/fig-cookies": "^3.0.0",
         "slim/slim" : "^4.10.0",
-        "monolog/monolog":"2.2.0",
         "guzzlehttp/guzzle":"^7.0"
     },
     "autoload" : {
