@@ -138,12 +138,6 @@ class PressToJamSlim {
             } 
             return $response;
         });
-      
-
-
-        $errorMiddleware = $this->app->addErrorMiddleware(true, true, true);
-        $errorHandler = $errorMiddleware->getDefaultErrorHandler();
-        $errorHandler->forceContentType('application/json');
 
 
         $this->app->add(function ($request, $handler) use ($self) {
@@ -166,14 +160,20 @@ class PressToJamSlim {
             }
 
             $self->params->apply($_GET);
+            return $handler->handle($request);
+        });
 
+        $errorMiddleware = $this->app->addErrorMiddleware(true, true, true);
+        $errorHandler = $errorMiddleware->getDefaultErrorHandler();
+        $errorHandler->forceContentType('application/json');
+
+        $this->app->add(function($request, $handler) use ($self) {
             $response = $handler->handle($request);
-            return $response
-                ->withHeader('Access-Control-Allow-Origin', $self->cors->origin)
-                ->withHeader('Access-Control-Allow-Headers', implode(",", $self->cors->headers))
-                ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
-                ->withHeader('Access-Control-Allow-Credentials', 'true')
-                ->withHeader('Content-Type', 'application/json');
+            return $response->withHeader('Access-Control-Allow-Origin', $self->cors->origin)
+            ->withHeader('Access-Control-Allow-Headers', implode(",", $self->cors->headers))
+            ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
+            ->withHeader('Access-Control-Allow-Credentials', 'true')
+            ->withHeader('Content-Type', 'application/json');
         });
         
     }
@@ -237,6 +237,24 @@ class PressToJamSlim {
             return $response;
         })->add(function($request, $handler) use ($self) {
             return $self->validateRoute($request, $handler);
+        });
+
+        $this->app->get("/slug/{route}/{name}", function ($request, $response, $args) use ($self) {
+            $cat = $args["route"];
+            $name = $args['name'];
+            if ($name == $cat) {
+                $response->getBody()->write(json_encode("{}"));
+                return $response;
+            }
+
+            $self->params->to = $cat;
+
+            $model = Factory::createRepo($name, $self->user, $self->pdo, $self->params, $self->hooks);
+            $str = json_encode($model->getSlugTrail());
+            $response->getBody()->write($str);
+            return $response;
+        })->add(function($request, $handler) use ($self) {
+            return $self->validateModel($request, $handler);
         });
 
 

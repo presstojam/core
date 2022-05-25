@@ -101,11 +101,15 @@ class ShapeHandler
         $this->collections[$collection->slug] = $collection;
         if (!$this->output_shape) $this->output_shape = new DataShape();
         if ($to and $to . "/" != $collection->slug) {
-            if (!$collection->hasParent()) return;
-            $parent = $collection->parent();
-            $this->input_shape->addRelationship($collection->slug . $parent->slug, $parent);
-            $this->setStructure($parent->reference, $to);
-            $this->collections[$collection->slug] = $collection;
+            if ($collection->hasParent()) {
+                $parent = $collection->parent();
+                $this->input_shape->addRelationship($collection->slug . $parent->slug, $parent);
+                $this->setStructure($parent->reference, $to);
+            } else if ($collection->hasOwner()) {
+                $owner = $collection->owner();
+                $this->input_shape->addRelationship($collection->slug . $owner->slug, $owner);
+                $this->setStructure($owner->reference, $to);
+            }
         }
     }
 
@@ -146,7 +150,7 @@ class ShapeHandler
             $this->input_shape->addFilter($collection->slug . $cell->slug, $cell);
         } else {
             $parent = $collection->parent();
-            $this->input_shape->addRelationship($collection->slug, $parent);
+            $this->input_shape->addRelationship($collection->slug . $parent->slug, $parent);
             $this->buildSecurity($parent->reference);
         }
     }

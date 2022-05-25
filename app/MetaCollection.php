@@ -7,13 +7,15 @@ class MetaCollection {
     protected $slug = "";
     protected $table = "";
     protected $alias;
+    protected $model;
 
     static protected $num = 1;
     
     
-    function __construct($slug, $table) {
+    function __construct($slug, $table, $model) {
         $this->slug = $slug;
         $this->table = $table;
+        $this->model = $model;
         $this->alias = "t" . self::$num;
         ++self::$num;
     }

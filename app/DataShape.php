@@ -31,7 +31,7 @@ class DataShape {
     }
 
     function addRelationship($slug, $field) {
-        if (!isset($this->relationship_fields[$slug])) $this->relationship_fields[$slug] = $field;
+        if (!isset($this->relationship_fields[$slug])) $this->relationship_fields[$slug . $field->slug] = $field;
     }
 
 

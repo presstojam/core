@@ -48,7 +48,7 @@ class StmtBuilder {
     function joins() {
         $joins = [];
         foreach($this->input_shape->relationship_fields as $field) {
-            if ($field->is_parent) {
+            if ($field->is_parent OR $field->is_owner) {
                 $primary = $field->reference->primary();
                 $join_str = "INNER JOIN " . $field->reference->table . " " . $field->reference->alias . " ON ";
                 $join_str .= " " . $field->alias . "." . $field->name . " = " . $primary->alias . "." . $primary->name;

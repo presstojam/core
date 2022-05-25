@@ -6,6 +6,7 @@ class IdCell extends MetaCell {
 
     protected $is_primary = false;
     protected $is_parent = false;
+    protected $is_owner = false;
     protected $reference = null;
     protected $is_circular = false;
 

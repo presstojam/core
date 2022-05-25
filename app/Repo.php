@@ -38,6 +38,48 @@ class Repo extends Model
         $this->input_shape->map($this->params->data);
     }
 
+
+    public function getSlugTrail() {
+        $this->setStructure($this->collections[""], $this->params->to);
+        $fields = [];
+        $owner = false;
+        foreach($this->collections as $slug=>$col) {
+            if ($col->hasParent()) {
+                $fields[$slug] = ["--parentid"];
+            } else {
+                $owner = trim($slug, "/");
+            }
+        }
+        
+        if (count($fields) == 0) {
+            return ($owner) ? [["model"=>$owner]] : [];
+        }
+        $this->setFields($this->output_shape, $fields);
+
+        $this->setFilterFields($this->params->data);
+        $this->input_shape->map($this->params->data);
+
+        $stmt_builder = $this->stmtBuilder()
+            ->limit(1);
+
+        $res = $this->exec($stmt_builder->get());
+        $data = $res->fetch(\PDO::FETCH_NUM);
+      
+        $result = $this->getResult($data);
+        $trails = [];
+        $fields = $this->output_shape->fields;
+        foreach($this->collections as $slug=>$col) {
+            //need model slug plus id
+            $trail = ["model"=>$col->model];
+            if ($col->hasParent()) $trail["id"] = $result->{$slug . "--parentid"};
+            $trails[] = $trail;
+        }
+
+        return array_reverse($trails);
+    }
+
+
+
     public function getCount($secure) {
         $this->setStructure($this->collections[""], $this->params->to);
         $cell = $this->createCell($this->collections[""], "__id");
@@ -99,28 +141,4 @@ class Repo extends Model
         return $results;
     }
 
-
-    function slug() {
-        $this->getQuery();
-        $stmt_builder = $this->stmtBuilder()
-            ->limit(1);
-
-        $res = $this->exec($stmt_builder->get());
-        $data = $res->fetch(\PDO::FETCH_NUM);
-        $row = $this->getResult($data);
-        $arr = [];
-        foreach ($cells as $cell_name=>$cell) {
-            $slug = $this->getCollectionName($cell_name);
-            if (!isset($arr[$slug])) {
-                $arr[$slug] = ["__id"=>0, "values"=>[], "model"=>$slug];
-            }
-            $name = $this->getFieldName($cell_name);
-            if ($name == "__id") {
-                $arr[$slug]["__id"] = $cell->export();
-            } else {
-                $arr[$slug]["values"][] = $cell->export();
-            }
-        }
-        return array_values($arr);
-    }
 }
