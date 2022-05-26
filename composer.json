@@ -9,7 +9,7 @@
     ],
     "minimum-stability": "dev",
     "require": {
-        "php": "^7.3.0",
+        "php": "^7.3.0|^8.0.0",
         "vlucas/phpdotenv": "^5.3",
         "aws/aws-sdk-php": "^3.176",
         "firebase/php-jwt": "^6.0",
