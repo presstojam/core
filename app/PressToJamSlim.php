@@ -243,7 +243,7 @@ class PressToJamSlim {
             $cat = $args["route"];
             $name = $args['name'];
             if ($name == $cat) {
-                $response->getBody()->write(json_encode("{}"));
+                $response->getBody()->write(json_encode([]));
                 return $response;
             }
 
