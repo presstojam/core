@@ -103,7 +103,8 @@ class StmtBuilder {
     function get() {
         $data_cols=[];
         foreach ($this->output_shape->fields as $field) {
-            $data_cols[] = $field->alias . "." . $field->name;
+            if ($field->func) $data_cols[] = $field->func . "(" . $field->alias.  "." . $field->name . ")";
+            else $data_cols[] = $field->alias . "." . $field->name;
         }
 
         foreach($this->output_shape->filter_fields as $field) {
@@ -192,19 +193,6 @@ class StmtBuilder {
         }
 
         $sql .= " WHERE " . implode(" AND ", $filter_cols);
-        return $sql;
-    }
-
-    function count() {
-        if (count($this->output_shape->fields) == 0) {
-            throw new \Error("Can't count with 0 output fields");
-        }
-
-        $col = first($this->output_shape->fields);
-        $sql = "SELECT COUNT (" . $col->alias . "." . $col->name . ") AS 'count' ";
-        $sql .= " FROM " . $this->from . " ";
-        $sql .= " " . $this->joins() . " ";
-        $sql .= $this->buildFilter();
         return $sql;
     }
 

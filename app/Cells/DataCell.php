@@ -8,6 +8,7 @@ class DataCell {
     protected $value = null;
     protected $meta_field = null;
     protected $locked = false;
+    protected $func = null;
   
     function __construct(MetaCell $field) {
         $this->meta_field = $field;

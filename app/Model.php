@@ -19,8 +19,7 @@ class Model extends ShapeHandler {
     }
 
 
-    function exec($sql) {
-        
+    function exec($sql) { 
         $stmt = new PreparedStatement($this->pdo);
         $stmt->prepare($sql);
 

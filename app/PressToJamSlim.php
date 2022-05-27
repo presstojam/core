@@ -223,6 +223,16 @@ class PressToJamSlim {
             return $self->validateRoute($request, $handler);
         });
 
+        $this->app->get('/count/{route}/{name}', function (Request $request, Response $response, $args) use ($self) {
+            $name = $args['name']; 
+            $model = Factory::createRepo($name, $self->user, $self->pdo, $self->params, $self->hooks);
+            $results = $model->getCount($self->params);
+            $response->getBody()->write(json_encode($results));
+            return $response;
+        })->add(function($request, $handler) use ($self) {
+            return $self->validateModel($request, $handler);
+        });
+
     
         $this->app->map(['GET','POST','PUT','DELETE'], "/route/{route}/{name}[/{state}]", function ($request, $response, $args) use ($self) {
             $cat = $args["route"];
@@ -387,10 +397,13 @@ class PressToJamSlim {
                 return $response;
             });
 
-            $group->post("/change-role", function (Request $request, Response $response, $args) use ($self) {
-                $role = $this->params->data["role"];
+            $group->post("/change-role[/{role}]", function (Request $request, Response $response, $args) use ($self) {
+                $role = $args['role'];
                 $user = new UserProfile($request);
-                if ($role != $user->role) {
+                if (!$role) {
+                    $user->role = "";
+                    $response = $user->save($response);
+                } else if ($role != $user->role) {
                     $user->role = ""; //reset so we get the correct initial perms
                     $perms = Factory::createPerms($user);
                     if ($role) {
@@ -403,7 +416,6 @@ class PressToJamSlim {
                 }
                 $response->getBody()->write(json_encode($user));
                 return $response;
-
             });
             
             $group->get("/languages", function (Request $request, Response $response, $args) use ($self) {

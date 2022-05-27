@@ -31,6 +31,11 @@ class Repo extends Model
                 $fields[$slug][] = (!$slug) ? "*" : "*summary";
             }
         }
+
+        foreach($this->collections as $slug=>$col) {
+            if (!isset($fields[$slug])) $fields[$slug] = [];
+            $fields[$slug][] = "--id";
+        }
         
         $this->setFields($this->output_shape, $fields);
 
@@ -81,19 +86,20 @@ class Repo extends Model
 
 
     public function getCount($secure) {
+        $this->params->limit = "";
         $this->setStructure($this->collections[""], $this->params->to);
-        $cell = $this->createCell($this->collections[""], "__id");
+        $cell = $this->createCell($this->collections[""], "--id");
         $cell->func = "COUNT";
         $this->output_shape->addField($cell->slug, $cell);
 
         $this->setFilterFields($this->params->data);
         $this->input_shape->map($this->params->data);
 
-
         $stmt_builder = $this->stmtBuilder();
-        $res = $this->exec($stmt_builder->get(), $output_shape);
+        $res = $this->exec($stmt_builder->get());
         $data = $res->fetch(\PDO::FETCH_NUM);
-        return $data;
+        if (!$data) return ["count"=>0];
+        else return ["count"=>$data[0]];
     }
 
 

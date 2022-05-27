@@ -33,7 +33,7 @@ class ShapeHandler
     function createCell($collection, $alias) {
         $field = $collection->getFromAlias($alias);
         if (!$field) 
-            throw new Exceptions\PtjException("Can't find field with alias of  " . $alias);
+            throw new Exceptions\PtjException("Can't find field with alias of  " . $alias . " in collection " . $collection->slug);
         $cell = new Cells\DataCell($field);
         return $cell;
     }
