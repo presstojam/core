@@ -26,6 +26,7 @@ class MetaCell {
     protected $alias;
     protected $slug;
     protected $immutable = false;
+    protected $last_error = null;
     
     protected $summary = false;
 
@@ -55,20 +56,23 @@ class MetaCell {
     
     function validateSize($size) {
         if ($this->min !== null AND $size < $this->min) {
-            return ValidationRules::OutOfRangeMin;
+            $this->last_error = ValidationRules::OutOfRangeMin;
         } else if ($this->max !== null AND $size > $this->max) {
-            return ValidationRules::OutOfRangeMax;
+            $this->last_error = ValidationRules::OutOfRangeMax;
+        } else {
+            $this->last_error = ValidationRules::OK;
         }
     }
 
 
     function validateValue($value) {
         if ($this->contains != "" AND !preg_match("/" . $this->contains . "/", $value)) {
-            return ValidationRules::Characters;
+            $this->last_error = ValidationRules::Characters;
         } else if ($this->not_contains != "" AND preg_match("/" . $this->not_contains . "/", $value)) {
-            return ValidationRules::CharactersNegative;
+            $this->last_error = ValidationRules::CharactersNegative;
+        } else {
+            $this->last_error = alidationRules::OK;
         }
-        return ValidationRules::OK;
     }
 
 
@@ -106,4 +110,7 @@ class MetaCell {
         return $arr;
     }
  
+    function getLastError() {
+        return $this->last_error;
+    }
 }

@@ -35,33 +35,13 @@ class FlagCell extends MetaCell {
     }
 
     function map($value) {
-        if (is_array($value)) {
-            foreach($value as $key=>$val) {
-                $value[$key] = ($val) ? 1 : 0;
-            }
+        $value = ($value) ? 1 : 0;
+        $this->validateSize($value); 
+        if ($this->last_error ==  ValidationRules::OK) {
+           return $value;
         } else {
-            $value = ($value) ? 1 : 0;
+            return $null;
         }
-        return $value;
-    }
-
-
-    function validate($value) {        
-        if (is_array($value)) {
-            foreach ($value as $val) {
-                $rule = $this->validateSize($val);
-                if ($rule != ValidationRules::OK) {
-                    return $rule;
-                }
-            }
-        } else {         
-            $rule = $this->validateSize($value);         
-            if ($rule != ValidationRules::OK) {
-                return $rule;
-            }
-        }
-
-        return ValidationRules::OK;
     }
 
 

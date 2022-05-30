@@ -42,22 +42,21 @@ class AssetCell extends MetaCell {
                 $val['name'] = $this->uniqueKey($val['ext']);
             }
         } 
-        return $val;
-    }
- 
-
-    function validate($value) {
-        $size = (isset($value['size'])) ? $value['size'] : 0;
-        $rule = $this->validateSize($size);
-        if ($rule != ValidationRules::OK) {
-            return $rule;
+        
+        $size = (isset($val['size'])) ? $val['size'] : 0;
+        $this->validateSize($size);
+        if ($this->last_error = ValidationRules::OK) {
+            $ext = \pathinfo($val['name'], \PATHINFO_EXTENSION);
+            $this->validateValue($ext);
         }
 
-        $ext = \pathinfo($value['name'], \PATHINFO_EXTENSION);
-        $rule = $this->validateValue($ext);
-        return $rule;
+        if ($this->last_error == ValidationRules::OK) {
+            return $val['name'];
+        } else {
+            return null;
+        }
     }
-
+ 
 
     public function writeFile($key, $data) {
         $ext = \pathinfo($key, \PATHINFO_EXTENSION);

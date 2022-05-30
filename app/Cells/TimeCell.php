@@ -12,8 +12,13 @@ class TimeCell extends MetaCell {
     }
 
 
-    function map($val) {
-        return $val;
+    function map($value) {
+        $this->validateSize($this->getTimestamp($value));
+        if ($this->last_error == ValidationRules::OK) {
+            return $value;
+        } else {
+            return null;
+        }
     }
 
     function getTimestamp($date) {
@@ -30,26 +35,6 @@ class TimeCell extends MetaCell {
 		return $timestamp;
         */
         return $d->getTimestamp();
-    }
-
-
-    function validate($value) {
-
-        if (is_array($value)) {
-            foreach($this->value as $key=>$val) {
-                $rule = $this->validateSize($this->getTimestamp($val));
-                if ($rule != ValidationRules::OK) {
-                    return $rule;
-                }
-            }
-        } else {
-            $rule = $this->validateSize($this->getTimestamp($value));
-            if ($rule != ValidationRules::OK) {
-                return $rule;
-            }
-        }
-       
-        return ValidationRules::OK;
     }
 
     

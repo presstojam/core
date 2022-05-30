@@ -72,9 +72,8 @@ class DataCell {
     function map($val) {
         if ($this->locked) return;
         $val = $this->meta_field->map($val);
-        $validate = $this->meta_field->validate($val);
-        if ($validate != ValidationRules::OK) {
-            return $validate;
+        if ($this->meta_field->last_error != ValidationRules::OK) {
+            return $this->meta_field->last_error;
         }
         $this->value = $val;
         $this->setType();

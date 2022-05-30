@@ -26,33 +26,13 @@ class IdCell extends MetaCell {
     }
 
     function map($value) {
-        if (is_array($value)) {
-            foreach($value as $key=>$val) {
-                $value[$key] = (is_numeric($val)) ? $val : 0;
-            }
+        $value = (is_numeric($value)) ? $value : 0;
+        $this->validateSize($value);
+        if ($this->last_error == ValidationRules::OK) {
+            return $value;
         } else {
-            $value = (is_numeric($value)) ? $value : 0;
+            return null;
         }
-        return $value;
-    }
-
-
-    function validate($value) {        
-        if (is_array($value)) {
-            foreach ($value as $val) {
-                $rule = $this->validateSize($val);
-                if ($rule != ValidationRules::OK) {
-                    return $rule;
-                }
-            }
-        } else {         
-            $rule = $this->validateSize($value);         
-            if ($rule != ValidationRules::OK) {
-                return $rule;
-            }
-        }
-
-        return ValidationRules::OK;
     }
 
 
