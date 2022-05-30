@@ -16,6 +16,7 @@ class DataShape {
     function __get($key) {
         if ($key == "from") return $this->table . " " . $this->alias;
         else if (property_exists($this, $key)) return $this->$key;
+        else if (isset($this->fields[$key])) return $this->fields[$key];
     }
 
     function __set($key, $val) {

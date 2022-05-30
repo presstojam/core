@@ -8,7 +8,6 @@ class AssetCell extends MetaCell {
     protected $size = 0;
     protected $chunk_size = 0;
     protected $tmp_file_dir;
-    protected $name_template = "";
     protected $hook;
     protected $dir;
   
@@ -39,33 +38,22 @@ class AssetCell extends MetaCell {
    
     function map($val) {
         if (is_array($val)) {
-            if (isset($val['name'])) {
-                $val['ext'] = \pathinfo($val['name'], \PATHINFO_EXTENSION);
-                $this->value = $val['name'];
+            if (!isset($val['name'])) {
+                $val['name'] = $this->uniqueKey($val['ext']);
             }
         } 
         return $val;
-    }
-
-    function toArg($val) {
-        if (!$val) return;
-        if (!isset($val['name'])) {
-            $key = $this->uniqueKey($val['ext']);
-            $this->writeFile($key, ""); //reserve the bucket space
-            return $key;
-        } else {
-            return $val['name'];
-        }
     }
  
 
     function validate($value) {
         $size = (isset($value['size'])) ? $value['size'] : 0;
-        $ext = (isset($value['ext'])) ? $value['ext'] : "";
         $rule = $this->validateSize($size);
         if ($rule != ValidationRules::OK) {
             return $rule;
         }
+
+        $ext = \pathinfo($value['name'], \PATHINFO_EXTENSION);
         $rule = $this->validateValue($ext);
         return $rule;
     }
@@ -134,6 +122,12 @@ class AssetCell extends MetaCell {
         return $writer->get($key);
     }
 
+    function reserve($key) {
+        $writer = \PressToJamCore\Configs\Factory::createS3Writer();
+        if (!$writer->fileExists($key)) {
+            $this->writeFile($key, "");
+        }
+    }
 
     function runHook() {
         if ($this->hook) {
