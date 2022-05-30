@@ -71,20 +71,10 @@ class DataCell {
 
     function map($val) {
         if ($this->locked) return;
-        if (is_array($val)) {
-            foreach($val as $v) {
-                $v = $this->meta_field->map($v);
-                $validate = $this->meta_field->validate($v);
-                if ($validate != ValidationRules::OK) {
-                    return $validate;
-                }
-            }
-        } else {
-            $val = $this->meta_field->map($val);
-            $validate = $this->meta_field->validate($val);
-            if ($validate != ValidationRules::OK) {
-                return $validate;
-            }
+        $val = $this->meta_field->map($val);
+        $validate = $this->meta_field->validate($val);
+        if ($validate != ValidationRules::OK) {
+            return $validate;
         }
         $this->value = $val;
         $this->setType();
