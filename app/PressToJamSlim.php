@@ -150,11 +150,12 @@ class PressToJamSlim {
                 
                 $str = file_get_contents('php://input');
                 if ($str) {
-                    try {
+                    $header = $request->headers->get('Content-Type');
+                    if ($header == "application/json") {
                         $contents = json_decode($str, true);
                         $self->params->apply($contents);
-                    } catch(\Exception $e) {
-                        $self->blob = $contents;
+                    } else {
+                        $self->blob = $str;
                     }
                 }
             }
