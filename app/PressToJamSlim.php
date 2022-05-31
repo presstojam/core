@@ -157,8 +157,6 @@ class PressToJamSlim {
                         } else {
                             throw new \Exception("Unable to process json request body");
                         }
-                    } else {
-                        $self->blob = $str;
                     }
                 }
             }
@@ -264,7 +262,7 @@ class PressToJamSlim {
             $self->params->to = $cat;
 
             $model = Factory::createRepo($name, $self->user, $self->pdo, $self->params, $self->hooks);
-            $str = json_encode($model->getSlugTrail());
+            $str = json_encode($model->slug());
             $response->getBody()->write($str);
             return $response;
         })->add(function($request, $handler) use ($self) {
@@ -283,12 +281,15 @@ class PressToJamSlim {
             $model = Factory::createRepo($name, $self->user, $self->pdo, $self->params, $self->hooks);
             $res = $model->primary();
             $s3writer = Configs\Factory::createS3Writer();
+
+            $body = file_get_contents('php://input');
             try {
-                $s3writer->push($res->$field, $self->params->body);
+                $s3writer->push($res->$field, $body);
             } catch(\Exception $e) {
                 echo $e->getMessage();
             }
-            return $response;
+           $response->getBody()->write(json_encode("success"));
+           return $response;
         })->add(function($request, $handler) use ($self) {
             return $self->validateModel($request, $handler);
         });
