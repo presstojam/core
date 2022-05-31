@@ -279,7 +279,7 @@ class PressToJamSlim {
             $model = Factory::createRepo($name, $self->user, $self->pdo, $self->params, $self->hooks);
             $res = $model->primary();
             $s3writer = Configs\Factory::createS3Writer();
-            $s3writer->push($res->$field->export(), $self->params->body);
+            $s3writer->push($res->$field, $self->params->body);
             return $response;
         })->add(function($request, $handler) use ($self) {
             return $self->validateModel($request, $handler);
