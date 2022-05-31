@@ -150,10 +150,10 @@ class PressToJamSlim {
                 
                 $str = file_get_contents('php://input');
                 if ($str) {
-                    $contents = json_decode($str, true);
-                    if (json_last_error() === JSON_ERROR_NONE) {
+                    try {
+                        $contents = json_decode($str, true);
                         $self->params->apply($contents);
-                    } else {
+                    } catch(\Exception $e) {
                         $self->blob = $contents;
                     }
                 }
@@ -279,7 +279,11 @@ class PressToJamSlim {
             $model = Factory::createRepo($name, $self->user, $self->pdo, $self->params, $self->hooks);
             $res = $model->primary();
             $s3writer = Configs\Factory::createS3Writer();
-            $s3writer->push($res->$field, $self->params->body);
+            try {
+                $s3writer->push($res->$field, $self->params->body);
+            } catch(\Exception $e) {
+                echo $e->getMessage();
+            }
             return $response;
         })->add(function($request, $handler) use ($self) {
             return $self->validateModel($request, $handler);
