@@ -71,7 +71,7 @@ class MetaCell {
         } else if ($this->not_contains != "" AND preg_match("/" . $this->not_contains . "/", $value)) {
             $this->last_error = ValidationRules::CharactersNegative;
         } else {
-            $this->last_error = alidationRules::OK;
+            $this->last_error = ValidationRules::OK;
         }
     }
 
