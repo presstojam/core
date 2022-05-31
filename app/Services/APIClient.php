@@ -134,7 +134,7 @@ class APIClient {
     }
 
 
-    public function pushAsset($url, $data, $blob) {
+    public function pushAsset($url, $blob) {
         return $this->process("PATCH", $url, null, $blob);
     }
 }

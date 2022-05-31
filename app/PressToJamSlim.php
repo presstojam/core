@@ -282,7 +282,7 @@ class PressToJamSlim {
             $s3writer->push($res->$field->export(), $self->params->body);
             return $response;
         })->add(function($request, $handler) use ($self) {
-            return $self->validateRoute($request, $handler);
+            return $self->validateModel($request, $handler);
         });
 
         $this->app->get("/asset/{name}/{field}/{id}", function($request, $response, $args) use ($self) {
