@@ -13,13 +13,22 @@ class TimeCell extends MetaCell {
 
 
     function map($value) {
-        $this->validateSize($this->getTimestamp($value));
-        if ($this->last_error == ValidationRules::OK) {
-            return $value;
+        if (is_array($value)) {
+            foreach($value as $key=>$val) {
+                $this->validateSize($this->getTimestamp($val));
+                if ($this->last_error != ValidationRules::OK) {
+                    return null;
+                } 
+            }
         } else {
-            return null;
+            $this->validateSize($this->getTimestamp($value));
+            if ($this->last_error != ValidationRules::OK) {
+                return null;
+            }
         }
+        return $value;
     }
+    
 
     function getTimestamp($date) {
         $d = \DateTime::createFromFormat('Y-m-d\TH:i', $date);

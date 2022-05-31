@@ -33,16 +33,30 @@ class StringCell extends MetaCell {
 
 
     function map($value) {
+        if (is_array($value)) {
+            foreach($value as $key=>$val) {
+                $value[$key] = trim($val);
+                $this->validate($value[$key]);
+                if ($this->last_error != ValidationRules::OK) {
+                    return null;
+                }
+            }
+        } else {
+            $value = trim($value);
+            $this->validate($value);
+            if ($this->last_error != ValidationRules::OK) {
+                return null;
+            }
+        }
+        return $value;
+    }
+
+
+    function validate($value) {
         $value = trim($value);
         $this->validateSize(strlen($value));
         if ($this->last_error == ValidationRules::OK) {
             $this->validateValue($value);
-        }
-            
-        if ($this->last_error == ValidationRules::OK) {
-            return $value;
-        } else {
-            return null;
         }
     }
 

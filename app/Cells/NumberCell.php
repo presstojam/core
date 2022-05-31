@@ -39,12 +39,25 @@ class NumberCell extends MetaCell {
     }
 
     function map($value) {
-        $value = (is_numeric($value)) ? $value : 0;
-        $this->validateSize($value);         
-        if ($this->last_error != ValidationRules::OK) {
-            return $value;
+        if (is_array($value)) {
+            $cvalues = [];
+            foreach ($value as $key=>$val) {
+                $val = (is_numeric($val)) ? $val : 0;
+                $this->validateSize($val);
+                if ($this->last_error != ValidationRules::OK) {
+                    $values[$key] = $val;
+                } else {
+                    return null;
+                }
+            }
         } else {
-            return null;
+            $value = (is_numeric($value)) ? $value : 0;
+            $this->validateSize($value);
+            if ($this->last_error != ValidationRules::OK) {
+                return $value;
+            } else {
+                return null;
+            }
         }
     }
 
