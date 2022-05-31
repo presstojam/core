@@ -150,10 +150,13 @@ class PressToJamSlim {
                 
                 $str = file_get_contents('php://input');
                 if ($str) {
-                    $header = $request->getHeader('Content-Type');
-                    if ($header == "application/json") {
+                    if ($contentType == "application/json") {
                         $contents = json_decode($str, true);
-                        $self->params->apply($contents);
+                        if (json_last_error() === JSON_ERROR_NONE) {
+                            $self->params->apply($contents);
+                        } else {
+                            throw new \Exception("Unable to process json request body");
+                        }
                     } else {
                         $self->blob = $str;
                     }

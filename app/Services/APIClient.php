@@ -69,7 +69,7 @@ class APIClient {
         }
 
         $r = $this->http->request($method, $url, $params);
-
+        
         if ($r->getStatusCode() == 403) {
             $r = $this->http->put("/core/switch-tokens");
             if ($r->getStatusCode() != 200) {
