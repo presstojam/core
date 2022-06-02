@@ -43,7 +43,7 @@ class Factory {
     }
 
 
-    static function createRepo($model, $user, $pdo, $params, $hooks) {
+    static function createRepo($model, $user, $pdo, $params, $hooks = null) {
         $class_name = "\PressToJam\Repos\\" . self::camelCase($model);
         return new $class_name($user, $pdo, $params, $hooks);
     }

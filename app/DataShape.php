@@ -28,7 +28,10 @@ class DataShape {
     }
 
     function addFilter($slug, $field) {
-        if (!isset($this->filter_fields[$slug])) $this->filter_fields[$slug] = $field;
+        if (!isset($this->filter_fields[$slug])) {
+            $this->filter_fields[$slug] = $field;
+            $field->immutable = false;
+        }
     }
 
     function addRelationship($slug, $field) {

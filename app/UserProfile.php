@@ -16,22 +16,24 @@ class UserProfile implements \JsonSerializable {
     private $is_expired = false;
 
 
-    function __construct($request)
+    function __construct($request = null)
     {
-        $auth = FigRequestCookies::get($request, "api-auth");
-        //otherwise check if set via cookie
-        if ($auth AND $auth->getValue()) {
-            $token = Configs\Factory::createJWT();
-            $payload = $token->decode($auth->getValue());
-            if (!$payload) {
-                $this->is_expired = true;
-            } else {
-                $this->user = $payload->user;
-                $this->id = $payload->id;
-                $this->role = $payload->role;
-                $this->lang = $payload->lang;
+        if ($request) {
+            $auth = FigRequestCookies::get($request, "api-auth");
+            //otherwise check if set via cookie
+            if ($auth and $auth->getValue()) {
+                $token = Configs\Factory::createJWT();
+                $payload = $token->decode($auth->getValue());
+                if (!$payload) {
+                    $this->is_expired = true;
+                } else {
+                    $this->user = $payload->user;
+                    $this->id = $payload->id;
+                    $this->role = $payload->role;
+                    $this->lang = $payload->lang;
+                }
             }
-        } 
+        }
     }
 
 

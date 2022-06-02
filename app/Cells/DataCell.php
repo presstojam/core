@@ -18,6 +18,7 @@ class DataCell {
 
     function __set($name, $value) {
         if (property_exists($this, $name)) $this->$name = $value;
+        else $this->meta_field->$name = $value;
     }
 
     function __get($name) {

@@ -43,6 +43,11 @@ class ResultsRow implements \JsonSerializable {
         $this->children = $children;
     }
 
+    function addChild($slug, $child) {
+        if (!isset($this->children[$slug])) $this->children[$slug] = [];
+        $this->children[$slug][] = $child;
+    }
+
 
     function addHistory($history) {
         $this->history[] = $history;
@@ -55,20 +60,19 @@ class ResultsRow implements \JsonSerializable {
             $args[$slug] = $cell->export();
         }
 
-
-        foreach($this->children as $slug=>$rows) {
-            $args[$slug] = [];
-            foreach($rows as $row) {
-                $args[$slug][] = $row->export();
-            }
-        }
-
         if (count($this->history) > 0) {
             $args["__history"] = [];
             foreach ($this->history as $hist) {
                 $args["__history"][] = $hist->export();
             }
         }
+      
+
+        foreach($this->children as $slug=>$rows) {
+            $args[$slug] = $rows;
+        }
+
+        
         return $args;
     }
 

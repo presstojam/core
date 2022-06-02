@@ -14,6 +14,58 @@ class Repo extends Model
     {
     }
 
+    function getParentChain($to)
+    {
+        $parents = [];
+        $meta = $this->collections[""];
+        while ($meta->hasParent()) {
+            $parent = $meta->parent();
+            $meta = $parent->reference;
+            $parents[$meta->model] = $parent->slug;
+            if ($meta->model == $to) {
+                break;
+            }
+        }
+        return $parents;
+    }
+
+    public function getChildren($index) {
+        $nparams = new Params();
+    
+        $model = $this->collections[""]->model;
+        
+        $nparams->data = [$model . "/--id"=>1];
+        $nparams->to = $model;
+        $nparams->fields = ["*"];
+
+        $ids = [];
+        $cols = $index->getCollection($model);
+        foreach($cols as $col) {
+            $ids[] = $col->{"--id"};
+        }
+        
+
+        foreach($this->params->children as $child) {
+            $repo = Factory::createRepo($child, $this->user, $this->pdo, $nparams);
+            $parents = $repo->getParentChain($model);
+            $repo->getQuery();
+            $repo->input_shape->map([$model . "/--id"=>1]);
+            $stmt_builder = $repo->stmtBuilder();
+            $stmt = new PreparedStatement($this->pdo);
+            $sql = $stmt_builder->get();
+            $stmt->prepare($sql);
+            foreach($ids as $id) {
+                $repo->input_shape->map([$model . "/--id"=>$id]);
+                $res = $stmt->execute($repo->input_shape->toArgs());
+                $results = $repo->getResults($res);
+                $index->append($child, $results, $parents);
+            }
+        }
+        return $index->getCollection($model);
+    }
+
+
+
     public function getQuery() {
         $this->setStructure($this->collections[""], $this->params->to);
         $fields = [];
@@ -38,9 +90,7 @@ class Repo extends Model
         }
         
         $this->setFields($this->output_shape, $fields);
-
         $this->setFilterFields($this->params->data);
-        $this->input_shape->map($this->params->data);
     }
 
 
