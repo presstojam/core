@@ -32,7 +32,7 @@ class ResultsIndex  {
     }
 
     function getCollection($name) {
-        return $this->collections[$name];
+        return array_values($this->collections[$name]);
     }
 
     function get($slug, $id) {

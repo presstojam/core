@@ -29,7 +29,8 @@ class Repo extends Model
         return $parents;
     }
 
-    public function getChildren($index) {
+    public function getChildren($results) {
+        $index = new Core\ResultsIndex($this->collections[""]->model, $results);
         $nparams = new Params();
     
         $model = $this->collections[""]->model;
