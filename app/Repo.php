@@ -40,6 +40,7 @@ class Repo extends Model
         $nparams->fields = ["*"];
 
         $ids = [];
+     
         $cols = $index->getCollection($model);
         foreach($cols as $col) {
             $ids[] = $col->{"--id"};
@@ -59,12 +60,12 @@ class Repo extends Model
                 $repo->input_shape->map([$model . "/--id"=>$id]);
                 $res = $stmt->execute($repo->input_shape->toArgs());
                 $results = $repo->getResults($res);
+                //check if history and load in if that is the case
                 $index->append($child, $results, $parents);
             }
         }
         return $index->getCollection($model);
     }
-
 
 
     public function getQuery() {

@@ -193,7 +193,7 @@ class PressToJamSlim {
             $method = strtolower($request->getMethod());
         
             $model = Factory::createModel($name, $self->user, $self->pdo, $self->params, $self->hooks);
-            $results = $model->$method($self->params);
+            $results = $model->$method();
             $response->getBody()->write(json_encode($results));
             return $response;
         })->add(function($request, $handler) use ($self) {
@@ -204,7 +204,7 @@ class PressToJamSlim {
         $this->app->post('/data/{route}/{name}/login', function (Request $request, Response $response, $args) use ($self) {
             $name = $args['name'];
             $model = Factory::createRepo($name, $self->user, $self->pdo, $self->params, $self->hooks);
-            $model->login($self->params);
+            $model->login();
             $response = $self->user->save($response);
             $response->getBody()->write(json_encode("success"));
             return $response;
