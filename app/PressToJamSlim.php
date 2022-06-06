@@ -337,10 +337,10 @@ class PressToJamSlim {
             return $self->validateModel($request, $handler);
         });
 
-        $this->app->get("/dictionary/{name}", function($request, $response, $args) use ($self) {
+        $this->app->get("/dictionary", function($request, $response, $args) use ($self) {
             $lang = new \PressToJam\Dictionary\Languages();
-            if ($this->user->lang) $lang->change($this->user->lang);
-            $dict = $lang->buildDictionary(Factory::camelCase($args["name"]));
+            if ($self->user->lang) $lang->change($self->user->lang);
+            $dict = $lang->getDictionary($self->user->user, $self->user->role);
             $response->getBody()->write(json_encode($dict));
             return $response;        
         })->add(function($request, $handler) use ($self) {

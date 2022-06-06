@@ -97,7 +97,6 @@ class AmazonS3Host
     }
 
     public function list($dir = "") {
-        echo "Listing files for " . $this->path . $dir;
         $objects = $this->client->listObjectsV2([
             'Bucket' => $this->bucket,
             'Prefix' => $this->path . $dir
