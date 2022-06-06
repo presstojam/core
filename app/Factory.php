@@ -14,14 +14,14 @@ class Factory {
 
     static function createPerms($user) {
         $profile = $user->user;
-        if ($user->role) $profile .= "_" . $user->role;
+        if ($user->role) $profile .= "-" . $user->role;
         $class_name = "\PressToJam\Profile\Perms\\" . self::camelCase($profile) . "Perms";
         return new $class_name();
     }
 
     static function createNav($user) {
         $profile = $user->user;
-        if ($user->role) $profile .= "_" . $user->role;
+        if ($user->role) $profile .= "-" . $user->role;
         $class_name = "\PressToJam\Profile\Nav\\" . self::camelCase($profile) . "Nav";
         return new $class_name();
     }
