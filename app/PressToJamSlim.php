@@ -343,8 +343,6 @@ class PressToJamSlim {
             $dict = $lang->getDictionary($self->user->user, $self->user->role);
             $response->getBody()->write(json_encode($dict));
             return $response;        
-        })->add(function($request, $handler) use ($self) {
-            return $self->validateModel($request, $handler);
         });
 
         $this->app->map(["POST", "PUT"], "/import/{name}", function($request, $response, $args) use ($self) {
