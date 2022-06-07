@@ -342,7 +342,7 @@ class PressToJamSlim {
             $lang = new \PressToJam\Dictionary\Languages();
             if ($user->lang) $lang->change($user->lang);
             $dict = $lang->getDictionary($user->user, $user->role);
-            $response->getBody()->write(json_encode($dict));
+            $response->getBody()->write($dict);
             return $response;        
         });
 
