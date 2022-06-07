@@ -371,10 +371,6 @@ class PressToJamSlim {
                 $model = $args["name"];
                 $profile = Factory::createNav($self->user);
                 $route = $profile->getRoutePoint(Factory::camelCase($route), Factory::camelCase($model));
-                $lang = new \PressToJam\Dictionary\Languages();
-                if ($self->user->lang) $lang->change($self->user->lang);
-                $dict = $lang->buildDictionary(Factory::camelCase($args["name"]));
-                $route->applyDictionary($dict);
                 $response->getBody()->write(json_encode($route));
                 return $response;
             })->add(function($request, $handler) use ($self) {
