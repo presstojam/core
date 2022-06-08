@@ -27,6 +27,7 @@ class MetaCell {
     protected $slug;
     protected $immutable = false;
     protected $last_error = null;
+    protected $states = [];
     
     protected $summary = false;
 
