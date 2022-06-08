@@ -6,8 +6,9 @@ use \Dflydev\FigCookies\FigResponseCookies;
 
 
 class UserProfile implements \JsonSerializable {
-    protected $user = "public";
-    protected $id = 0;
+    //protected $user = "public";
+    protected $user = "accounts";
+    protected $id = 1;
     protected $role = null;
     protected $lang = null;
     private $refresh_minutes = 86400;

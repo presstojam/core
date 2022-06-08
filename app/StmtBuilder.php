@@ -91,7 +91,7 @@ class StmtBuilder {
                         $join_str = "LEFT OUTER JOIN ";
                     }
                     $primary = $field->reference->primary();
-                    $join_str .= $field->reference->tabel . " " . $field->reference->alias . " ON ";
+                    $join_str .= $field->reference->table . " " . $field->reference->alias . " ON ";
                     $join_str .= " " . $field->alias . "." . $field->name . " = " . $primary->alias . "." . $primary->name;
                     $joins[] = $join_str;
                 }
