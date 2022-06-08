@@ -92,6 +92,7 @@ class Repo extends Model
         }
         
         $this->setFields($this->output_shape, $fields);
+        $this->setReferences();
         $this->setFilterFields($this->params->data);
     }
 
