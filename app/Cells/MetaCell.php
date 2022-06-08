@@ -21,7 +21,6 @@ class MetaCell {
     protected $name;
     protected $type = CellValueType::fixed;
     protected $default;
-    protected $label;
     protected $validation_tests = [];
     protected $alias;
     protected $slug;
@@ -102,11 +101,16 @@ class MetaCell {
             "contains"=>$this->contains, 
             "notcontains"=>$this->notcontains
         ];
-        $arr["label"] = $this->label;
-        $arr["title"] = $this->label;
+     
         $arr["immutable"] = $this->immutable;
         if ($this->default) $arr["default"] = $this->default;
         if ($this->summary) $arr["summary"] = true;
+        if ($this->states) {
+            $arr["states"] = [];
+            foreach($this->states as $state) {
+                $arr["states"][] = $state->toSchema();
+            }
+        }
 
         return $arr;
     }

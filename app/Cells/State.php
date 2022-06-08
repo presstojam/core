@@ -4,22 +4,9 @@ namespace PressToJamCore\Cells;
 
 class State
 {
-    protected $type;
-
-    protected $unique = false;
-    protected $required = false;
-    protected $reference = null;
-
-    protected $min= 0;
-    protected $max = 4294967295;
-    protected $contains = "";
-    protected $not_contains = "";
-  
-    protected $default = "";
-
     protected $depends_on;
-    protected $val;
-     
+    protected $depends_val;
+    protected $field;
 
 
     public function __set($name, $value)
@@ -34,5 +21,14 @@ class State
         if (property_exists($this, $name)) {
             return $this->$name;
         }
+    }
+
+
+    function toSchema() {
+        $arr=[];
+        $arr["depends_on"] = $this->depends_on;
+        $arr["depends_val"] = $this->depends_val;
+        $arr = array_merge($arr, $this->field->toSchema());
+        return $arr;
     }
 }

@@ -185,9 +185,7 @@ class StmtBuilder {
         }
 
      
-
-        //reverse tables to avoid integrity contstrains on foreign keys by deleting children first
-        $sql = "DELETE " . implode(", ", array_reverse($tables)) . " FROM " . $this->from . " " . $this->from_alias . " ";
+        $sql = "DELETE " . implode(", ", $tables) . " FROM " . $this->from . " " . $this->from_alias . " ";
         $sql .= $this->joins();
         foreach ($this->input_shape->filter_fields as $field) {
             $filter_cols[] =  $field->mapToStmtFilter($field->alias . "." . $field->name);
