@@ -37,8 +37,7 @@ class Repo extends Model
         
         $nparams->data = [$model . "/--id"=>1];
         $nparams->to = $model;
-        $nparams->fields = ["*"];
-
+       
         $ids = [];
      
         $cols = $index->getCollection($model);
