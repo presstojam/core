@@ -8,7 +8,7 @@ class IdCell extends MetaCell {
     protected $is_parent = false;
     protected $is_owner = false;
     protected $reference = null;
-    protected $is_circular = false;
+    protected $is_recursive = false;
 
     function __construct() {
         parent::__construct();
@@ -60,10 +60,10 @@ class IdCell extends MetaCell {
             $arr["is_primary"] = true;
         } else if ($this->is_parent) {
             $arr["is_parent"] = true;
-        } else if ($this->reference OR $this->is_circular) {
+        } else if ($this->reference) {
             $arr["reference"] = true;
         }
-        if ($this->is_circular) {
+        if ($this->is_recursive) {
             $arr["recursive"] = true;
         }
         return $arr;
