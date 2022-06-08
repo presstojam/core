@@ -223,7 +223,7 @@ class StmtBuilder {
 
     function order($col, $dir = "ASC")
     {
-        $this->order_by = $col . " " . $dir;
+        $this->order_by[] = $col . " " . $dir;
         return $this;
     }
 
