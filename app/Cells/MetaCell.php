@@ -26,6 +26,7 @@ class MetaCell {
     protected $slug;
     protected $immutable = false;
     protected $last_error = null;
+    protected $model;
     protected $states = [];
     
     protected $summary = false;
@@ -95,6 +96,7 @@ class MetaCell {
 
     function toSchema() {
         $arr=[];
+        $arr["model"] = $this->model;
         $arr["validation"] = [
             "min"=>$this->min, 
             "max"=>$this->max, 
