@@ -31,6 +31,7 @@ class Route extends ShapeHandler
         }
         
         $this->setFields($this->output_shape, $fields);
+        $this->setReferences();
 
         $fields =$this->output_shape->fields;
         foreach($fields as $slug=>$field) {
