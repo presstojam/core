@@ -402,7 +402,7 @@ class PressToJamSlim {
             });
 
             $group->post("/change-role[/{role}]", function (Request $request, Response $response, $args) use ($self) {
-                $role = $args['role'];
+                $role = (isset($args['role'])) ? $args["role"] : "";
                 $user = new UserProfile($request);
                 if (!$role) {
                     $user->role = "";
