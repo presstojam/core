@@ -74,7 +74,7 @@ class ShapeHandler
         $fields = [];
         foreach($this->output_shape->fields as $slug=>$cell) {
             if (get_class($cell->meta_field) == "PressToJamCore\Cells\IdCell") {
-                if (!$cell->meta_field->is_parent and !$cell->meta_field->is_primary and $cell->meta_field->reference) {
+                if (!$cell->meta_field->is_parent and !$cell->meta_field->is_primary and !$cell->meta_field->is_owner and $cell->meta_field->reference) {
                     $this->output_shape->addRelationship($slug, $cell);
                     $this->collections[$cell->meta_field->reference->slug] = $cell->meta_field->reference;
                     $fields[$cell->meta_field->reference->slug][] = "*summary";
