@@ -90,7 +90,7 @@ class Repo extends Model
             $fields[$slug][] = "--id";
         }
         
-        $this->setFields($this->output_shape, $fields);
+        $this->setFields($this->output_shape, $fields, true);
         $this->setReferences();
         $this->setFilterFields($this->params->data);
     }
@@ -111,7 +111,7 @@ class Repo extends Model
         if (count($fields) == 0) {
             return ($owner) ? [["model"=>$owner]] : [];
         }
-        $this->setFields($this->output_shape, $fields);
+        $this->setFields($this->output_shape, $fields, true);
 
         $this->setFilterFields($this->params->data);
         $this->input_shape->map($this->params->data);

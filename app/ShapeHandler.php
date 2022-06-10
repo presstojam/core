@@ -39,7 +39,7 @@ class ShapeHandler
     }
 
 
-    function setFields($shape, $fields) {
+    function setFields($shape, $fields, $outer = false) {
         foreach($fields as $slug=>$names) {
             $collection = $this->collections[$slug];
             foreach ($names as $alias) {
@@ -47,19 +47,19 @@ class ShapeHandler
                     $aliases = $collection->getAllAliases();
                     foreach($aliases as $calias) {
                         $cell = $this->createCell($collection, $calias);
-                        if ($cell->encrypted) $shape->addFilter($slug . $calias, $cell);
+                        if ($cell->encrypted and $outer) $shape->addFilter($slug . $calias, $cell);
                         else $shape->addField($slug . $calias, $cell);
                     }
                 } else if ($alias == "*summary") {
                     $aliases = $collection->getSummaryAliases();
                     foreach($aliases as $calias) {
                         $cell = $this->createCell($collection, $calias);
-                        if ($cell->encrypted) $shape->addFilter($slug . $c, $cell);
+                        if ($cell->encrypted and $outer) $shape->addFilter($slug . $c, $cell);
                         else $shape->addField($slug . $calias, $cell);
                     }
                 } else {
                     $cell =  $this->createCell($collection, $alias);
-                    if ($cell->encrypted) {
+                    if ($cell->encrypted and $outer) {
                         $shape->addFilter($slug . $alias, $cell);
                     } else {
                         $shape->addField($slug . $alias, $cell);

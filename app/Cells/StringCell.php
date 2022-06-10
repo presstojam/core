@@ -93,4 +93,10 @@ class StringCell extends MetaCell {
         $this->tests[] = $test;
     }
 
+
+    function toArg($val) {
+        if ($this->encrypted) return password_hash($val, PASSWORD_DEFAULT);
+        else return $val;
+    }
+
 }
