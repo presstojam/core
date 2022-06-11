@@ -48,20 +48,7 @@ class Repo extends Model
 
         foreach($this->params->children as $child) {
             $repo = Factory::createRepo($child, $this->user, $this->pdo, $nparams);
-            $parents = $repo->getParentChain($model);
-            $repo->getQuery();
-            $repo->input_shape->map([$model . "/--id"=>1]);
-            $stmt_builder = $repo->stmtBuilder();
-            $stmt = new PreparedStatement($this->pdo);
-            $sql = $stmt_builder->get();
-            $stmt->prepare($sql);
-            foreach($ids as $id) {
-                $repo->input_shape->map([$model . "/--id"=>$id]);
-                $res = $stmt->execute($repo->input_shape->toArgs());
-                $results = $repo->getResults($res);
-                //check if history and load in if that is the case
-                $index->append($child, $results, $parents);
-            }
+            $repo->getAsChild($index, $child, $ids, $model);
         }
         return $index->getCollection($model);
     }

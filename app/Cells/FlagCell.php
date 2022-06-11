@@ -40,7 +40,7 @@ class FlagCell extends MetaCell {
         if ($this->last_error ==  ValidationRules::OK) {
            return $value;
         } else {
-            return $null;
+            return null;
         }
     }
 

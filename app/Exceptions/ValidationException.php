@@ -10,7 +10,7 @@ class ValidationException extends PtjException {
     protected $message = "";
 
     function __construct($errors) {
-        $this->message = $errors;
+        $this->message = json_encode($errors);
     }
 
 }

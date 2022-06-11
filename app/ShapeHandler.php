@@ -47,15 +47,13 @@ class ShapeHandler
                     $aliases = $collection->getAllAliases();
                     foreach($aliases as $calias) {
                         $cell = $this->createCell($collection, $calias);
-                        if ($cell->encrypted and $outer) $shape->addFilter($slug . $calias, $cell);
-                        else $shape->addField($slug . $calias, $cell);
+                        $shape->addField($slug . $calias, $cell);
                     }
                 } else if ($alias == "*summary") {
                     $aliases = $collection->getSummaryAliases();
                     foreach($aliases as $calias) {
                         $cell = $this->createCell($collection, $calias);
-                        if ($cell->encrypted and $outer) $shape->addFilter($slug . $c, $cell);
-                        else $shape->addField($slug . $calias, $cell);
+                        $shape->addField($slug . $calias, $cell);
                     }
                 } else {
                     $cell =  $this->createCell($collection, $alias);
@@ -69,6 +67,7 @@ class ShapeHandler
         }
     }
 
+  
 
     function setReferences() {
         $fields = [];

@@ -60,7 +60,7 @@ class DataShape {
         }
 
         if (count($errors) > 0) {
-            throw Core\Exceptions\ValidationException($errors);
+            throw new Exceptions\ValidationException($errors);
         }
     }
 

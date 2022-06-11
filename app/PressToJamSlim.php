@@ -130,6 +130,8 @@ class PressToJamSlim {
             //write our error messages and reset to work with error handling
             try {
                 $response = $handler->handle($request);
+            } catch(Exceptions\ValidationException $e) {
+                throw $e;
             } catch(\Exception $e) {
                 $excep = new HttpException($request, $e->getMessage(), $e->getCode(), $e);
                 $excep->setTitle($e->getTitle());
