@@ -12,7 +12,8 @@ class Route extends ShapeHandler
         parent::__construct($user);
         $this->params = $params;
     }
-    
+
+
   
     public function setGetRoute() {
         $this->setStructure($this->collections[""], $this->params->to);
@@ -31,8 +32,7 @@ class Route extends ShapeHandler
         }
         
         $this->setFields($this->output_shape, $fields);
-        $this->setReferences();
-
+    
         $fields =$this->output_shape->fields;
         foreach($fields as $slug=>$field) {
             if (strpos($slug, "--owner") !== false) {
