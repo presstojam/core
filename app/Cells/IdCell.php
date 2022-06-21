@@ -62,7 +62,7 @@ class IdCell extends MetaCell {
             $arr["is_parent"] = true;
         } else if ($this->reference) {
             $arr["reference"] = true;
-
+            $arr["reference_to"] = $this->reference->model;
             if (!$this->is_recursive) {
                 $arr["includes"] = $this->reference->getSummaryAliases();
             }
