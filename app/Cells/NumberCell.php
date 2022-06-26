@@ -53,7 +53,7 @@ class NumberCell extends MetaCell {
         } else {
             $value = (is_numeric($value)) ? $value : 0;
             $this->validateSize($value);
-            if ($this->last_error != ValidationRules::OK) {
+            if ($this->last_error == ValidationRules::OK) {
                 return $value;
             } else {
                 return null;

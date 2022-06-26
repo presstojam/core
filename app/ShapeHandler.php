@@ -30,11 +30,12 @@ class ShapeHandler
     }
 
 
-    function createCell($collection, $alias) {
+    function createCell($collection, $alias, $force_mutable = false) {
         $field = $collection->getFromAlias($alias);
         if (!$field) 
             throw new Exceptions\PtjException("Can't find field with alias of  " . $alias . " in collection " . $collection->slug);
         $cell = new Cells\DataCell($field);
+        if ($force_mutable) $cell->immutable = false;
         return $cell;
     }
 

@@ -201,6 +201,18 @@ class PressToJamSlim {
         })->add(function($request, $handler) use ($self) {
             return $self->validateRoute($request, $handler);
         });
+
+        $this->app->put('/data/{route}/{name}/resort', function (Request $request, Response $response, $args) use ($self) {
+            $name = $args['name'];
+            $method = strtolower($request->getMethod());
+        
+            $model = Factory::createModel($name, $self->user, $self->pdo, $self->params, $self->hooks);
+            $results = $model->resort();
+            $response->getBody()->write(json_encode($results));
+            return $response;
+        })->add(function($request, $handler) use ($self) {
+            return $self->validateRoute($request, $handler);
+        });
         
 
         $this->app->post('/data/{route}/{name}/login', function (Request $request, Response $response, $args) use ($self) {
