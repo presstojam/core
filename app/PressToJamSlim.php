@@ -190,7 +190,7 @@ class PressToJamSlim {
             return $response;
         });
 
-        $this->app->map(['POST', 'PUT', 'DELETE'], '/data/{route}/{name}', function (Request $request, Response $response, $args) use ($self) {
+        $this->app->map(['POST', 'PUT', 'DELETE'], '/data/{name}', function (Request $request, Response $response, $args) use ($self) {
             $name = $args['name'];
             $method = strtolower($request->getMethod());
         
@@ -199,10 +199,10 @@ class PressToJamSlim {
             $response->getBody()->write(json_encode($results));
             return $response;
         })->add(function($request, $handler) use ($self) {
-            return $self->validateRoute($request, $handler);
+            return $self->validateModel($request, $handler);
         });
 
-        $this->app->put('/data/{route}/{name}/resort', function (Request $request, Response $response, $args) use ($self) {
+        $this->app->put('/data/{name}/resort', function (Request $request, Response $response, $args) use ($self) {
             $name = $args['name'];
             $method = strtolower($request->getMethod());
         
@@ -211,11 +211,11 @@ class PressToJamSlim {
             $response->getBody()->write(json_encode($results));
             return $response;
         })->add(function($request, $handler) use ($self) {
-            return $self->validateRoute($request, $handler);
+            return $self->validateModel($request, $handler);
         });
         
 
-        $this->app->post('/data/{route}/{name}/login', function (Request $request, Response $response, $args) use ($self) {
+        $this->app->post('/data/{name}/login', function (Request $request, Response $response, $args) use ($self) {
             $name = $args['name'];
             $model = Factory::createRepo($name, $self->user, $self->pdo, $self->params, $self->hooks);
             $model->login();
@@ -223,11 +223,11 @@ class PressToJamSlim {
             $response->getBody()->write(json_encode("success"));
             return $response;
         })->add(function($request, $handler) use ($self) {
-            return $self->validateRoute($request, $handler);
+            return $self->validateModel($request, $handler);
         });
 
 
-        $this->app->get('/data/{route}/{name}[/{state}]', function (Request $request, Response $response, $args) use ($self) {
+        $this->app->get('/data/{name}[/{state}]', function (Request $request, Response $response, $args) use ($self) {
             $name = $args['name'];
             $state = (isset($args["state"])) ? $args["state"] : "get";
            
@@ -236,10 +236,10 @@ class PressToJamSlim {
             $response->getBody()->write(json_encode($results));
             return $response;
         })->add(function($request, $handler) use ($self) {
-            return $self->validateRoute($request, $handler);
+            return $self->validateModel($request, $handler);
         });
 
-        $this->app->get('/count/{route}/{name}', function (Request $request, Response $response, $args) use ($self) {
+        $this->app->get('/count/{name}', function (Request $request, Response $response, $args) use ($self) {
             $name = $args['name']; 
             $model = Factory::createRepo($name, $self->user, $self->pdo, $self->params, $self->hooks);
             $results = $model->getCount($self->params);
