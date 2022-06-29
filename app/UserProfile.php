@@ -12,7 +12,7 @@ class UserProfile implements \JsonSerializable {
     protected $lang = null;
     private $refresh_minutes = 86400;
     private $auth_minutes = 15;
-    private $is_owner = true;
+    private $is_owner = false;
     private $is_expired = false;
 
 
