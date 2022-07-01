@@ -215,10 +215,10 @@ class PressToJamSlim {
         });
         
 
-        $this->app->post('/data/{name}/login', function (Request $request, Response $response, $args) use ($self) {
+        $this->app->post('/login/{name}', function (Request $request, Response $response, $args) use ($self) {
             $name = $args['name'];
-            $model = Factory::createRepo($name, $self->user, $self->pdo, $self->params, $self->hooks);
-            $model->login();
+            $profile = new Profile();
+            $profile->login($self->user, $self->pdo, $self->params, $name);
             $response = $self->user->save($response);
             $response->getBody()->write(json_encode("success"));
             return $response;
