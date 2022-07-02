@@ -247,31 +247,26 @@ class PressToJamSlim {
         });
 
 
-        $this->app->map(['GET','POST','PUT','DELETE'], "/meta/{model}", function ($request, $response, $args) use ($self) {
+        $this->app->map(['GET','POST','PUT'], "/meta/{model}[/{state}]", function ($request, $response, $args) use ($self) {
             $model = $args["model"];
-            $method = strtolower($request->getMethod());
-        
-            $route = $self->profile->getRoutePoint($cat, $flow, $model)
-            
-            $details = ($state != "model") ? $route->$state($self->params) : $route->model($self->perms, $cat);
-            $str = json_encode($details);
-            $response->getBody()->write($str);
+            $state = (isset($args["state"])) ? $args["state"] : strtolower($request->getMethod());
+
+            $route = Factory::createRoute($model, $self->user, $self->params);
+            $arr = $route->$state();
+            $response->getBody()->write(json_encode($arr));
             return $response;
         })->add(function($request, $handler) use ($self) {
             return $self->validateRoute($request, $handler);
         });
 
     
-        $this->app->map(['GET','POST','PUT','DELETE'], "/route/{route}/{flow}[/{model}]", function ($request, $response, $args) use ($self) {
+        $this->app->get("/route/{route}/{flow}[/{model}]", function ($request, $response, $args) use ($self) {
             $cat = $args["route"];
             $flow = $args['flow'];
             $model = (isset($args["model"])) ? $args["model"] : $flow;
-            $method = strtolower($request->getMethod());
         
             $route = $self->profile->getRoutePoint($cat, $flow, $model)
-            
-            $details = ($state != "model") ? $route->$state($self->params) : $route->model($self->perms, $cat);
-            $str = json_encode($details);
+            $str = json_encode($route);
             $response->getBody()->write($str);
             return $response;
         })->add(function($request, $handler) use ($self) {
