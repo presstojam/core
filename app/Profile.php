@@ -3,14 +3,29 @@ namespace PressToJamCore;
 
 class Profile {
 
-    protected $permissions = [];
+    protected $routes = [];
+    protected $model_perms = [];
 
 
-    function hasPermission($model, $state, $method) {
-        if (!isset($this->permissions[$model])) return false;
-        if (!isset($this->permissions[$model][$state])) return false;
-        if ($this->permissions[$model][$state] != $method) return false;
+    function hasModelPermissions($model, $method) {
+        if (!isset($this->model_perms[$model])) return false;
+        if (!in_array($method, $this->model_perms[$model])) return false;
         return true;
+    } 
+
+
+    function hasRoutePermissions($route, $flow) {
+        if (!isset($this->routes[$route])) return false;
+        if (!isset($this->routes[$route][$flow])) return false;
+        return true;
+    }
+
+
+    function getRoutePoint($route, $flow, $model) {
+        $class_name = "\PressToJam\Profiles\Flow\\" . $this->routes[$route][$flow];
+        $route = new $class_name();
+        $route->{ "get" . Factory::camelCase($model)}();
+        return $route;
     }
 
 

@@ -6,13 +6,13 @@ namespace PressToJamCore;
 class RoutePoint implements \JsonSerializable {
 
     protected $name;
-    protected $title;
     protected $parent;
     protected $children = [];
     protected $perms = [];
     protected $refs = [];
     protected $reverse_refs = [];
     protected $sort = false;
+    protected $is_owner = false;
     
 
     function __construct($name) {

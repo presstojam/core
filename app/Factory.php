@@ -12,24 +12,13 @@ class Factory {
         return new $meta_name();
     }
 
-    static function createPerms($user) {
+    static function createProfile($user) {
         $profile = $user->user;
-        if ($user->role) $profile .= "-" . $user->role;
-        $class_name = "\PressToJam\Profile\Perms\\" . self::camelCase($profile) . "Perms";
+        $class_name = "\PressToJam\Profile\\" . self::camelCase($profile);
         return new $class_name();
     }
 
-    static function createNav($user) {
-        $profile = $user->user;
-        if ($user->role) $profile .= "-" . $user->role;
-        $class_name = "\PressToJam\Profile\Nav\\" . self::camelCase($profile) . "Nav";
-        return new $class_name();
-    }
 
-    static function createRoute($model, $user, $params) {
-        $class_name = "\PressToJam\Routes\\" . self::camelCase($model);
-        return new $class_name($user, $params);
-    }
 
     static function createModel($model, $user, $pdo, $params, $hooks) {
         $class_name = "\PressToJam\Models\\" . self::camelCase($model);

@@ -18,7 +18,7 @@ class PressToJamSlim {
     protected $params;
     protected $cors;
     protected $logger;
-    protected $perms;
+    protected $profile;
     protected $user;
    
 
@@ -73,28 +73,25 @@ class PressToJamSlim {
     function validateRoute($request, $handler) {
 
         $this->user = new UserProfile($request);
-        $class_name = Factory::createPerms($this->user);
-        $this->perms = new $class_name();
+        $this->profile = Factory::createProfile($this->user);
         
         $routeContext = RouteContext::fromRequest($request);
         $route = $routeContext->getRoute();
 
         $cat = $route->getArgument("route");
+        $flow = $route->getArgument("flow");
         $model = $route->getArgument("name");
+        if (!$model) $model = $flow;
         $method = strtolower($request->getMethod());
         $args = $route->getArguments();
         $state = (isset($args["state"])) ? $args["state"] : $method;
 
-        if ($state == "model") {
-            if (!$this->perms->hasModelPermission($model)) {
-                throw new Exceptions\UserException(403, "This user does not have authorisation for model " . $model);
-            }
-        } else {
-            if (!$this->perms->hasPermission($model, $state, $method)) {
-                throw new Exceptions\UserException(403, "The user type " . $this->user->user . " does not have authorisation for route " . $cat . "/" . $model . "/" . $state);
-            }
-            $this->user->is_owner = $this->perms->requiresOwner($cat, $model, $state);
+        if (!$this->profile->hasRoutePermissions($cat, $flow, $model)) {
+            throw new Exceptions\UserException(403, "The user type " . $this->user->user . " does not have authorisation for route " . $cat . "/" . $model . "/" . $state);
         }
+
+        $flow_point = $profile->getRoutePoint($cat, $flow, $model);
+        $this->user->is_owner = $flow_point->is_owner;
 
         return $handler->handle($request);
     }
@@ -103,16 +100,16 @@ class PressToJamSlim {
     function validateModel($request, $handler) {
 
         $this->user = new UserProfile($request);
-        $class_name = Factory::createPerms($this->user);
-        $this->perms = new $class_name();
-        
+        $this->profile = Factory::createProfile($this->user);
+         
         $routeContext = RouteContext::fromRequest($request);
         $route = $routeContext->getRoute();
 
         $model = $route->getArgument("name");
+        $method = strtolower($request->getMethod());
        
 
-        if (!$this->perms->hasModelPermission($model)) {
+        if (!$this->profile->hasModelPermissions($model, $method)) {
             throw new Exceptions\UserException(403, "This user does not have authorisation for model " . $model);
         }
 
@@ -223,7 +220,7 @@ class PressToJamSlim {
             $response->getBody()->write(json_encode("success"));
             return $response;
         })->add(function($request, $handler) use ($self) {
-            return $self->validateModel($request, $handler);
+            return $self->validateProfile($request, $handler);
         });
 
 
@@ -249,14 +246,30 @@ class PressToJamSlim {
             return $self->validateModel($request, $handler);
         });
 
-    
-        $this->app->map(['GET','POST','PUT','DELETE'], "/route/{route}/{name}[/{state}]", function ($request, $response, $args) use ($self) {
-            $cat = $args["route"];
-            $name = $args['name'];
-            $method = strtolower($request->getMethod());
-            $state = (isset($args["state"])) ? $args["state"] : $method;
 
-            $route = Factory::createRoute($name, $self->user, $self->params);
+        $this->app->map(['GET','POST','PUT','DELETE'], "/meta/{model}", function ($request, $response, $args) use ($self) {
+            $model = $args["model"];
+            $method = strtolower($request->getMethod());
+        
+            $route = $self->profile->getRoutePoint($cat, $flow, $model)
+            
+            $details = ($state != "model") ? $route->$state($self->params) : $route->model($self->perms, $cat);
+            $str = json_encode($details);
+            $response->getBody()->write($str);
+            return $response;
+        })->add(function($request, $handler) use ($self) {
+            return $self->validateRoute($request, $handler);
+        });
+
+    
+        $this->app->map(['GET','POST','PUT','DELETE'], "/route/{route}/{flow}[/{model}]", function ($request, $response, $args) use ($self) {
+            $cat = $args["route"];
+            $flow = $args['flow'];
+            $model = (isset($args["model"])) ? $args["model"] : $flow;
+            $method = strtolower($request->getMethod());
+        
+            $route = $self->profile->getRoutePoint($cat, $flow, $model)
+            
             $details = ($state != "model") ? $route->$state($self->params) : $route->model($self->perms, $cat);
             $str = json_encode($details);
             $response->getBody()->write($str);
