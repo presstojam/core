@@ -117,6 +117,26 @@ class PressToJamSlim {
     }
 
 
+    function validateProfile($request, $handler) {
+
+        $this->user = new UserProfile($request);
+        $this->profile = Factory::createProfile($this->user);
+         
+        $routeContext = RouteContext::fromRequest($request);
+        $route = $routeContext->getRoute();
+
+        $model = "user_login";
+        $method = strtolower($request->getMethod());
+       
+
+        if (!$this->profile->hasModelPermissions($model, $method)) {
+            throw new Exceptions\UserException(403, "This user does not have authorisation for model " . $model);
+        }
+
+        return $handler->handle($request);
+    }
+
+
     function initMiddleware() {
 
         $self = $this;
@@ -265,7 +285,7 @@ class PressToJamSlim {
             $flow = $args['flow'];
             $model = (isset($args["model"])) ? $args["model"] : $flow;
         
-            $route = $self->profile->getRoutePoint($cat, $flow, $model)
+            $route = $self->profile->getRoutePoint($cat, $flow, $model);
             $str = json_encode($route);
             $response->getBody()->write($str);
             return $response;
