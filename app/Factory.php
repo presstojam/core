@@ -14,7 +14,7 @@ class Factory {
 
     static function createProfile($user) {
         $profile = $user->user;
-        $class_name = "\PressToJam\Profiles\\" . self::camelCase($profile) . "Profile";
+        $class_name = "\PressToJam\Profile\\" . self::camelCase($profile) . "Profile";
         return new $class_name();
     }
 
