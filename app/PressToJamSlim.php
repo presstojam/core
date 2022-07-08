@@ -357,9 +357,9 @@ class PressToJamSlim {
             return $self->validateModel($request, $handler);
         });
 
-        $this->app->get("/reference/{name}/{field}", function($request, $response, $args) use ($self) {
+        $this->app->get("/reference/{model}/{field}", function($request, $response, $args) use ($self) {
             
-            $name = $args["name"];
+            $name = $args["model"];
             $field = $args["field"];
             if (isset($self->params->data["--id"])) {
                 $id= $self->params->data["--id"];
