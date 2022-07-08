@@ -290,22 +290,24 @@ class PressToJamSlim {
             return $self->validateRoute($request, $handler);
         });
 
-        $this->app->get("/slug/{route}/{name}", function ($request, $response, $args) use ($self) {
+        $this->app->get("/slug/{route}/{flow}[/{model}]", function ($request, $response, $args) use ($self) {
             $cat = $args["route"];
-            $name = $args['name'];
-            if ($name == $cat) {
+            $flow = $args['flow'];
+            $model = (isset($args["model"])) ? $args["model"] : $flow;
+
+            if ($flow == $cat) {
                 $response->getBody()->write(json_encode([]));
                 return $response;
             }
 
-            $self->params->to = $cat;
+            $self->params->to = $flow;
 
             $model = Factory::createRepo($name, $self->user, $self->pdo, $self->params, $self->hooks);
             $str = json_encode($model->slug());
             $response->getBody()->write($str);
             return $response;
         })->add(function($request, $handler) use ($self) {
-            return $self->validateModel($request, $handler);
+            return $self->validateRoute($request, $handler);
         });
 
 
