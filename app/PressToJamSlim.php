@@ -284,13 +284,10 @@ class PressToJamSlim {
             $cat = $args["route"];
             $flow = $args['flow'];
             $model = (isset($args["model"])) ? $args["model"] : $flow;
-        
-            $route = $self->profile->getRoutePoint($cat, $flow, $model);
-            $str = json_encode($route);
-            $response->getBody()->write($str);
+            $profile = Factory::createProfile($self->user);
+            $route = $profile->getRoutePoint(Factory::camelCase($route), Factory::camelCase($model));
+            $response->getBody()->write(json_encode($route));
             return $response;
-        })->add(function($request, $handler) use ($self) {
-            return $self->validateRoute($request, $handler);
         });
 
         $this->app->get("/slug/{route}/{name}", function ($request, $response, $args) use ($self) {
@@ -406,27 +403,11 @@ class PressToJamSlim {
             });
         }
 
-
-        $this->app->group("/nav", function (RouteCollectorProxy $group) use ($self) {
-            $group->get("/route-points/{route}/{flow}[/{model}]", function($request, $response, $args) use ($self) {
-                $route = $args["route"];
-                $flow = $args["flow"];
-                $model = (isset($args["model"])) ? $args["model"] : $flow;
-                $profile = Factory::createProfile($self->user, $route, $model);
-                $route = $profile->getRoutePoint(Factory::camelCase($route), Factory::camelCase($model));
-                $response->getBody()->write(json_encode($route));
-                return $response;
-            })->add(function($request, $handler) use ($self) {
-                return $self->validateModel($request, $handler);
-            });
-
-
-            $group->get("/site-map", function($request, $response) {
-                $user = new UserProfile($request);
-                $profile = Factory::createProfile($user);
-                $response->getBody()->write(json_encode($profile->getNav()));
-                return $response;
-            });
+        $this->app->get("/nav/site-map", function($request, $response) use ($self) {
+            $user = new UserProfile($request);
+            $profile = Factory::createProfile($user);
+            $response->getBody()->write(json_encode($profile->getNav()));
+            return $response;
         });
 
         $this->app->group("/core", function (RouteCollectorProxy $group) use ($self) {
