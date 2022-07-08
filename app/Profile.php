@@ -22,7 +22,13 @@ class Profile {
 
 
     function getRoutePoint($route, $flow, $model) {
-        $class_name = "\PressToJam\Profiles\Flow\\" . $this->routes[$route][$flow];
+        if (!isset($this->routes[$route])) {
+            throw new Exceptions\PtjException("Route " . $route . " doesn't exist");
+        }
+        if (!isset($this->routes[$route][$flow])) {
+            throw new Exceptions\PtjException("Flow " . $route . "::" . $flow . " doesn't exist");
+        }
+        $class_name = $this->routes[$route][$flow];
         $route = new $class_name();
         $route->{ "get" . Factory::camelCase($model)}();
         return $route;

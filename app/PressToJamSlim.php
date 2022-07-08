@@ -408,10 +408,11 @@ class PressToJamSlim {
 
 
         $this->app->group("/nav", function (RouteCollectorProxy $group) use ($self) {
-            $group->get("/route-points/{route}/{name}", function($request, $response, $args) use ($self) {
+            $group->get("/route-points/{route}/{flow}[/{model}]", function($request, $response, $args) use ($self) {
                 $route = $args["route"];
-                $model = $args["name"];
-                $profile = Factory::createNav($self->user);
+                $flow = $args["flow"];
+                $model = (isset($args["model"])) ? $args["model"] : $flow;
+                $profile = Factory::createProfile($self->user, $route, $model);
                 $route = $profile->getRoutePoint(Factory::camelCase($route), Factory::camelCase($model));
                 $response->getBody()->write(json_encode($route));
                 return $response;
@@ -422,7 +423,7 @@ class PressToJamSlim {
 
             $group->get("/site-map", function($request, $response) {
                 $user = new UserProfile($request);
-                $profile = Factory::createNav($user);
+                $profile = Factory::createProfile($user);
                 $response->getBody()->write(json_encode($profile->getNav()));
                 return $response;
             });
