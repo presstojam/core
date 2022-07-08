@@ -288,6 +288,8 @@ class PressToJamSlim {
             $route = $profile->getRoutePoint(Factory::camelCase($route), Factory::camelCase($model));
             $response->getBody()->write(json_encode($route));
             return $response;
+        })->add(function($request, $handler) use ($self) {
+            return $self->validateRoute($request, $handler);
         });
 
         $this->app->get("/slug/{route}/{name}", function ($request, $response, $args) use ($self) {
