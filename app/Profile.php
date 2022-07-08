@@ -28,7 +28,7 @@ class Profile {
         if (!isset($this->routes[$route][$flow])) {
             throw new Exceptions\PtjException("Flow " . $route . "::" . $flow . " doesn't exist");
         }
-        $class_name = $this->routes[$route][$flow];
+        $class_name = "\PressToJam\Profile\Flows\\" . $this->routes[$route][$flow];
         $route = new $class_name();
         $route->{ "get" . Factory::camelCase($model)}();
         return $route;
