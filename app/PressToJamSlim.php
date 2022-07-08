@@ -102,7 +102,7 @@ class PressToJamSlim {
         $routeContext = RouteContext::fromRequest($request);
         $route = $routeContext->getRoute();
 
-        $model = $route->getArgument("name");
+        $model = $route->getArgument("model");
         $method = strtolower($request->getMethod());
        
 
@@ -204,8 +204,8 @@ class PressToJamSlim {
             return $response;
         });
 
-        $this->app->map(['POST', 'PUT', 'DELETE'], '/data/{name}', function (Request $request, Response $response, $args) use ($self) {
-            $name = $args['name'];
+        $this->app->map(['POST', 'PUT', 'DELETE'], '/data/{model}', function (Request $request, Response $response, $args) use ($self) {
+            $name = $args['model'];
             $method = strtolower($request->getMethod());
         
             $model = Factory::createModel($name, $self->user, $self->pdo, $self->params, $self->hooks);
@@ -216,8 +216,8 @@ class PressToJamSlim {
             return $self->validateModel($request, $handler);
         });
 
-        $this->app->put('/data/{name}/resort', function (Request $request, Response $response, $args) use ($self) {
-            $name = $args['name'];
+        $this->app->put('/data/{model}/resort', function (Request $request, Response $response, $args) use ($self) {
+            $name = $args['model'];
             $method = strtolower($request->getMethod());
         
             $model = Factory::createModel($name, $self->user, $self->pdo, $self->params, $self->hooks);
@@ -241,8 +241,8 @@ class PressToJamSlim {
         });
 
 
-        $this->app->get('/data/{name}[/{state}]', function (Request $request, Response $response, $args) use ($self) {
-            $name = $args['name'];
+        $this->app->get('/data/{model}[/{state}]', function (Request $request, Response $response, $args) use ($self) {
+            $name = $args['model'];
             $state = (isset($args["state"])) ? $args["state"] : "get";
            
             $model = Factory::createRepo($name, $self->user, $self->pdo, $self->params, $self->hooks);
@@ -253,8 +253,8 @@ class PressToJamSlim {
             return $self->validateModel($request, $handler);
         });
 
-        $this->app->get('/count/{name}', function (Request $request, Response $response, $args) use ($self) {
-            $name = $args['name']; 
+        $this->app->get('/count/{model}', function (Request $request, Response $response, $args) use ($self) {
+            $name = $args['model']; 
             $model = Factory::createRepo($name, $self->user, $self->pdo, $self->params, $self->hooks);
             $results = $model->getCount($self->params);
             $response->getBody()->write(json_encode($results));
