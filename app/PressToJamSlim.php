@@ -273,7 +273,7 @@ class PressToJamSlim {
             $response->getBody()->write(json_encode($arr));
             return $response;
         })->add(function($request, $handler) use ($self) {
-            return $self->validateRoute($request, $handler);
+            return $self->validateModel($request, $handler);
         });
 
     
