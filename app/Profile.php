@@ -39,6 +39,9 @@ class Profile {
         $params->fields=["--id", "password", "type"];
         $params->to = null;
         $params->limit = 1;
+        $data = $params->data;
+        $data["type"] = $type;
+        $params->data = $data;
         if (!isset($params->data["password"]) OR !isset($params->data["username"]) OR !isset($params->data["type"])) {
             throw new Exceptions\PtjException("Incorrect parameters set");
         } 
