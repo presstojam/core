@@ -122,7 +122,7 @@ class PressToJamSlim {
         $routeContext = RouteContext::fromRequest($request);
         $route = $routeContext->getRoute();
 
-        $model = "user_login";
+        $model = "user-login";
         $method = strtolower($request->getMethod());
        
 
