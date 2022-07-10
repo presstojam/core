@@ -91,7 +91,9 @@ class ShapeHandler
             if (!isset($this->collections[$colslug])) {
                 throw new Exceptions\PtjException("Can't apply filter field " . $slug . " to collection that hasn't been set: " . $slug);
             }
-            $this->input_shape->addFilter($slug, $this->createCell($this->collections[$colslug], $this->getFieldName($slug)));
+            $cell = $this->createCell($this->collections[$colslug], $this->getFieldName($slug));
+            if ($cell->encrypted) $this->output_shape->addFilter($slug, $cell);
+            else $this->input_shape->addFilter($slug, $cell);
         }
     }
 

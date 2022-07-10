@@ -311,8 +311,8 @@ class PressToJamSlim {
         });
 
 
-        $this->app->patch("/asset/{name}/{field}/{id}", function($request, $response, $args) use ($self) {
-            $name = $args["name"];
+        $this->app->patch("/asset/{model}/{field}/{id}", function($request, $response, $args) use ($self) {
+            $name = $args["model"];
             $field = $args["field"];
             $id = $args["id"];
 
@@ -335,8 +335,8 @@ class PressToJamSlim {
             return $self->validateModel($request, $handler);
         });
 
-        $this->app->get("/asset/{name}/{field}/{id}", function($request, $response, $args) use ($self) {
-            $name = $args["name"];
+        $this->app->get("/asset/{model}/{field}/{id}", function($request, $response, $args) use ($self) {
+            $name = $args["model"];
             $field = $args["field"];
             $id = $args["id"];
 

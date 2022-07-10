@@ -5,8 +5,7 @@ class Profile {
 
     protected $routes = [];
     protected $model_perms = [];
-
-
+  
     function hasModelPermissions($model, $method) {
         if (!isset($this->model_perms[$model])) return false;
         if (!in_array($method, $this->model_perms[$model])) return false;
@@ -39,12 +38,14 @@ class Profile {
         $params->fields=["--id", "password", "type"];
         $params->to = null;
         $params->limit = 1;
-        $data = $params->data;
-        $data["type"] = $type;
-        $params->data = $data;
-        if (!isset($params->data["password"]) OR !isset($params->data["username"]) OR !isset($params->data["type"])) {
+
+        
+       
+        if (!isset($params->data["password"]) OR !isset($params->data["username"])) {
             throw new Exceptions\PtjException("Incorrect parameters set");
         } 
+
+        $params->data = ["username"=>$params->data["username"], "password"=>$params->data["password"]];        
 
         $repo = new \PressToJam\Repos\UserLogin($user, $pdo, $params);
         $obj = $repo->get();
