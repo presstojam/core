@@ -21,7 +21,7 @@ class ResultsRow implements \JsonSerializable {
             $hash = array_shift($row);
             if (!password_verify($field->value, $hash)) {
                 //now compare the password part of this
-                throw new Exceptions\PtjException("Field not validated");
+                throw new Exceptions\PtjException("Encrypted field does not match hash: " . $field->name);
             }
         }
     }

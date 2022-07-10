@@ -107,7 +107,7 @@ class PressToJamSlim {
        
 
         if (!$this->profile->hasModelPermissions($model, $method)) {
-            throw new Exceptions\UserException(403, "This user does not have authorisation for model " . $model);
+            throw new Exceptions\UserException(403, "User " . $this->user->user . " does not have " . $method . " authorisation for model " . $model);
         }
 
         return $handler->handle($request);
@@ -127,7 +127,7 @@ class PressToJamSlim {
        
 
         if (!$this->profile->hasModelPermissions($model, $method)) {
-            throw new Exceptions\UserException(403, "This user does not have authorisation for model " . $model);
+            throw new Exceptions\UserException(403, "User " . $this->user->user . " does not have " . $method . " authorisation for model " . $model);
         }
 
         return $handler->handle($request);
