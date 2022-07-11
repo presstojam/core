@@ -87,7 +87,7 @@ class PressToJamSlim {
         $state = (isset($args["state"])) ? $args["state"] : $method;
 
         if (!$this->profile->hasRoutePermissions($cat, $flow, $model)) {
-            throw new Exceptions\UserException(403, "The user type " . $this->user->user . " does not have authorisation for route " . $cat . "/" . $model . "/" . $state);
+            throw new Exceptions\UserException(403, "The user type " . $this->user->user . " does not have authorisation for route " . $cat . "/" . $flow . "/" . $model);
         }
 
         return $handler->handle($request);
@@ -378,7 +378,7 @@ class PressToJamSlim {
             $response->getBody()->write(json_encode($results));
             return $response;
         })->add(function($request, $handler) use ($self) {
-            return $self->validateModel($request, $handler);
+            return $self->validateModel($request, $handler, "reference");
         });
 
         $this->app->get("/dictionary", function($request, $response, $args) {
