@@ -94,7 +94,7 @@ class PressToJamSlim {
     }
 
 
-    function validateModel($request, $handler) {
+    function validateModel($request, $handler, $method = null) {
 
         $this->user = new UserProfile($request);
         $this->profile = Factory::createProfile($this->user);
@@ -103,7 +103,10 @@ class PressToJamSlim {
         $route = $routeContext->getRoute();
 
         $model = $route->getArgument("model");
-        $method = strtolower($request->getMethod());
+        if (!$method) {
+            $args = $route->getArguments();
+            $method = (isset($args["state"])) ? $args["state"] : strtolower($request->getMethod());
+        }
        
 
         if (!$this->profile->hasModelPermissions($model, $method)) {
@@ -354,7 +357,7 @@ class PressToJamSlim {
             }
             exit;
         })->add(function($request, $handler) use ($self) {
-            return $self->validateModel($request, $handler);
+            return $self->validateModel($request, $handler, "viewasset");
         });
 
         $this->app->get("/reference/{model}/{field}", function($request, $response, $args) use ($self) {
