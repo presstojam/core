@@ -109,6 +109,7 @@ class AssetCell extends MetaCell {
 
     public function uniqueKey($ext) {
         $writer = \PressToJamCore\Configs\Factory::createS3Writer();
+        $key = "";
         do {
             $key = uniqid($this->dir) . "." . $ext;
         } while($writer->fileExists($key));

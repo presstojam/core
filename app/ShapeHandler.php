@@ -56,6 +56,13 @@ class ShapeHandler
                         $cell = $this->createCell($collection, $calias);
                         $shape->addField($slug . $calias, $cell);
                     }
+                } else if ($alisa == "*reference") {
+                    $aliases = $collection->getReferenceAliases();
+                    foreach($aliases as $calias) {
+                        $cell = $this->createCell($collection, $calias);
+                        $shape->addField($slug . $calias, $cell);
+                    }
+                
                 } else {
                     $cell =  $this->createCell($collection, $alias);
                     if ($cell->encrypted and $outer) {
@@ -77,7 +84,7 @@ class ShapeHandler
                 if (!$cell->meta_field->is_parent and !$cell->meta_field->is_primary and !$cell->meta_field->is_owner and $cell->meta_field->reference) {
                     $this->output_shape->addRelationship($slug, $cell);
                     $this->collections[$cell->meta_field->reference->slug] = $cell->meta_field->reference;
-                    $fields[$cell->meta_field->reference->slug][] = "*summary";
+                    $fields[$cell->meta_field->reference->slug][] = "*reference";
                 }
             }
         }
