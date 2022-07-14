@@ -6,6 +6,7 @@ namespace PressToJamCore;
 class RoutePoint implements \JsonSerializable {
 
     protected $name;
+    protected $title;
     protected $parent;
     protected $children = [];
     protected $perms = [];
