@@ -21,7 +21,10 @@
     "autoload" : {
         "psr-4" : {
             "PressToJamCore\\" : "app/"
-        }
+        },
+        "files" : [
+            "app/autoloadpsr4.php"
+        ]
     },
     "license" : "Apache-2.0"
 }

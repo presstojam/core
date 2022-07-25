@@ -1,6 +1,7 @@
 <?php
-namespace PtjAutoload;
+namespace PressToJamCore;
 
+if (! function_exists(__NAMESPACE__ . '\regAutoload')) {
 
 function regAutoload($namespace, $base) {
     //register psr-4 autoload
@@ -20,3 +21,5 @@ function regAutoload($namespace, $base) {
     });
 }
 
+
+}
