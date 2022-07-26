@@ -54,7 +54,7 @@ class ResultsRow implements \JsonSerializable {
     }
 
 
-    function jsonSerialize() {
+    function jsonSerialize() : mixed {
         $args=[];
         foreach($this->cells as $slug=>$cell) {
             $args[$slug] = $cell->export();

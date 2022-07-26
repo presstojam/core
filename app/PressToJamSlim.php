@@ -43,17 +43,18 @@ class PressToJamSlim {
     }
 
 
+    function __set($key, $val) {
+        if (property_exists($this, $key)) $this->$key = $val;
+    }
+    
     function setLogger($logger) {
         $this->logger = $logger;
     }
 
 
-
     function validateRoute($request, $handler) {
 
-        $this->user = new UserProfile($request);
-        $this->profile = Factory::createProfile($this->user);
-        
+    
         $routeContext = RouteContext::fromRequest($request);
         $route = $routeContext->getRoute();
 
@@ -75,9 +76,6 @@ class PressToJamSlim {
 
     function validateModel($request, $handler, $method = null) {
 
-        $this->user = new UserProfile($request);
-        $this->profile = Factory::createProfile($this->user);
-         
         $routeContext = RouteContext::fromRequest($request);
         $route = $routeContext->getRoute();
 
@@ -98,9 +96,6 @@ class PressToJamSlim {
 
     function validateProfile($request, $handler) {
 
-        $this->user = new UserProfile($request);
-        $this->profile = Factory::createProfile($this->user);
-         
         $routeContext = RouteContext::fromRequest($request);
         $route = $routeContext->getRoute();
 
@@ -160,6 +155,23 @@ class PressToJamSlim {
             }
 
             $self->params->apply($_GET);
+            return $handler->handle($request);
+        });
+
+
+        $this->app->add(function($request, $handler) use ($self) {
+            try {
+                if (!$self->user) {
+                    $self->user = new UserProfile($request);
+                }
+                 
+                $self->profile = Factory::createProfile($self->user);
+            } catch(\Exception $e) {
+                $excep = new HttpException($request, $e->getMessage(), $e->getCode(), $e);
+                $excep->setTitle($e->getTitle());
+                $excep->setDescription($e->getDescription());
+                throw $excep; 
+            }
             return $handler->handle($request);
         });
 
@@ -360,11 +372,10 @@ class PressToJamSlim {
             return $self->validateModel($request, $handler, "reference");
         });
 
-        $this->app->get("/dictionary", function($request, $response, $args) {
-            $user = new UserProfile($request);
+        $this->app->get("/dictionary", function($request, $response, $args) use ($self) {
             $lang = new \PressToJam\Dictionary\Languages();
-            if ($user->lang) $lang->change($user->lang);
-            $dict = $lang->getDictionary($user->user, $user->role);
+            if ($self->user->lang) $lang->change($self->user->lang);
+            $dict = $lang->getDictionary($self->user->user, $self->user->role);
             $response->getBody()->write($dict);
             return $response;        
         });
@@ -388,8 +399,6 @@ class PressToJamSlim {
         }
 
         $this->app->get("/nav/site-map", function($request, $response) use ($self) {
-            $user = new UserProfile($request);
-            $profile = Factory::createProfile($user);
             $response->getBody()->write(json_encode($profile->getNav()));
             return $response;
         });
@@ -397,36 +406,33 @@ class PressToJamSlim {
         $this->app->group("/core", function (RouteCollectorProxy $group) use ($self) {
             
             $group->put("/switch-tokens", function (Request $request, Response $response, $args) {
-                $user = new UserProfile($request);
-                $response = $user->switchTokens($request, $response);
+                $response = $self->user->switchTokens($request, $response);
                 $response->getBody()->write(json_encode("success"));
                 return $response;
             });
             
-            $group->get("/check-user", function (Request $request, Response $response, $args) {
-                $user = new UserProfile($request);
-                $response->getBody()->write(json_encode($user));
+            $group->get("/check-user", function (Request $request, Response $response, $args) use ($self) {
+                $response->getBody()->write(json_encode($self->user));
                 return $response;
             });
 
             $group->post("/change-role[/{role}]", function (Request $request, Response $response, $args) use ($self) {
                 $role = (isset($args['role'])) ? $args["role"] : "";
-                $user = new UserProfile($request);
                 if (!$role) {
-                    $user->role = "";
-                    $response = $user->save($response);
+                    $self->user->role = "";
+                    $response = $self->user->save($response);
                 } else if ($role != $user->role) {
-                    $user->role = ""; //reset so we get the correct initial perms
-                    $perms = Factory::createPerms($user);
+                    $self->user->role = ""; //reset so we get the correct initial perms
+                    $perms = Factory::createPerms($self->user);
                     if ($role) {
                         $roles = $perms->getRoles();
                         if (in_array($role, $roles)) {
                             $user->role = $role;
                         }
                     }
-                    $response = $user->save($response);
+                    $response = $self->user->save($response);
                 }
-                $response->getBody()->write(json_encode($user));
+                $response->getBody()->write(json_encode($self->user));
                 return $response;
             });
             
@@ -439,18 +445,16 @@ class PressToJamSlim {
                    
             $group->post("/change-language", function (Request $request, Response $response, $args) use ($self) {
                 $params = $request->getQueryParams();
-                $user = new UserProfile($request);
-                $user->validate();
-                $user->lang = $params["__lang"];
-                $response = $user->save($response);
+                $self->user->validate();
+                $self->user->lang = $params["__lang"];
+                $response = $self->user->save($response);
                 return $response;
             });
 
             
-            $group->post("/logout", function (Request $request, Response $response, $args) {
-                $user = new UserProfile($request);
-                $response = $user->logout($response);
-                $response->getBody()->write(json_encode($user));
+            $group->post("/logout", function (Request $request, Response $response, $args) use ($self) {
+                $response = $self->user->logout($response);
+                $response->getBody()->write(json_encode($self->user));
                 return $response;
             });
         });

@@ -118,7 +118,7 @@ class UserProfile implements \JsonSerializable {
         return $response;
     }
 
-    function jsonSerialize() {
+    function jsonSerialize() : mixed {
         return [
             "user" => $this->user,
             "id" => $this->id,
