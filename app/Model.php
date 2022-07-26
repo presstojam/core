@@ -18,6 +18,10 @@ class Model extends ShapeHandler {
         $this->hooks = $hooks;
     }
 
+    function __get($key) {
+        if (property_exists($this, $key)) return $this->$key;
+    }
+
 
     function exec($sql) { 
         $stmt = new PreparedStatement($this->pdo);
