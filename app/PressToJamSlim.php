@@ -29,6 +29,7 @@ class PressToJamSlim {
         $this->pdo = Configs\Factory::createPDO();
         $this->hooks = new Hooks($custom_link);
         $this->params = new Params();
+      
 
         if (!$cors) {
             $this->cors = new Cors();
