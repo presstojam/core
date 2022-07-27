@@ -90,7 +90,9 @@ class PressToJamSlim {
         if (!$this->profile->hasModelPermissions($model, $method)) {
             throw new Exceptions\UserException(403, "User " . $this->user->user . " does not have " . $method . " authorisation for model " . $model);
         }
-
+        
+        $this->user->is_owner = $this->profile->isOwner($args["model"]);
+        
         return $handler->handle($request);
     }
 
@@ -171,18 +173,10 @@ class PressToJamSlim {
                 }
                  
                 $self->profile = Factory::createProfile($self->user);
-
-                $routeContext = RouteContext::fromRequest($request);
-                $route = $routeContext->getRoute();
-
-                $args = $route->getArguments();
-                if (isset($args["model"])) {
-                    $self->user->is_owner = $self->profile->isOwner($args["model"]);
-                }
             } catch(\Exception $e) {
                 $code = $e->getCode();
                 if ($code > 500) $code = 500;
-                $excep = new HttpException($request, $e->getMessage(), $e->getCode(), $e);
+                $excep = new HttpException($request, $e->getMessage(), $code, $e);
                 if (method_exists($e, "getTitle")) {
                     $excep->setTitle($e->getTitle());
                     $excep->setDescription($e->getDescription());
