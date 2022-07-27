@@ -287,7 +287,7 @@ class PressToJamSlim {
             $flow = $args['flow'];
             $model = (isset($args["model"])) ? $args["model"] : $flow;
 
-            $flow_point = Factory::createRoutePoint($self->user, $flow);
+            $flow_point = Factory::createRoutePoint($self->user, $flow, $self->params);
             $response->getBody()->write(json_encode($flow_point->{ "get" . Factory::camelCase($model) }($self->params)));
             return $response;
         })->add(function($request, $handler) use ($self) {
@@ -409,7 +409,7 @@ class PressToJamSlim {
         }
 
         $this->app->get("/nav/site-map", function($request, $response) use ($self) {
-            $response->getBody()->write(json_encode($profile->getNav()));
+            $response->getBody()->write(json_encode($self->profile->getNav()));
             return $response;
         });
 
