@@ -181,8 +181,10 @@ class PressToJamSlim {
                 }
             } catch(\Exception $e) {
                 $excep = new HttpException($request, $e->getMessage(), $e->getCode(), $e);
-                $excep->setTitle($e->getTitle());
-                $excep->setDescription($e->getDescription());
+                if (method_exists($e, "getTitle")) {
+                    $excep->setTitle($e->getTitle());
+                    $excep->setDescription($e->getDescription());
+                }
                 throw $excep; 
             }
             return $handler->handle($request);
