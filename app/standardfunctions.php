@@ -1,5 +1,6 @@
 <?php
 namespace PressToJamCore;
+echo "BEING INCLUDED";
 
 if (! function_exists(__NAMESPACE__ . '\regAutoload')) {
 
@@ -22,4 +23,20 @@ function regAutoload($namespace, $base) {
 }
 
 
+}
+
+
+
+if (! function_exists(__NAMESPACE__ . '\kebabCase')) {
+
+    function kebabCase($name) {
+        $name = str_replace("_", "-", $name);
+        return preg_replace_callback(
+            "/[A-Z]/", 
+            function($matches) {
+                return "-" . strtolower($matches[1]);
+            },
+            $name
+        );
+    }
 }

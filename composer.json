@@ -23,7 +23,7 @@
             "PressToJamCore\\" : "app/"
         },
         "files" : [
-            "app/autoloadpsr4.php"
+            "app/standardfunctions.php"
         ]
     },
     "license" : "Apache-2.0"

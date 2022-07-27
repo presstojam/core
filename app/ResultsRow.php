@@ -30,6 +30,10 @@ class ResultsRow implements \JsonSerializable {
     function __get($name) {
         if(property_exists($this, $name)) return $this->$name;
         else if (isset($this->cells[$name])) return $this->cells[$name]->value;
+        else {
+            $kcase = kebabCase($name);
+            if (isset($this->cells[$kcase])) return $this->cells[$kcase];
+        }
     }
 
 

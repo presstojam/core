@@ -8,8 +8,8 @@ use \Dflydev\FigCookies\FigResponseCookies;
 class UserProfile implements \JsonSerializable {
     protected $user = "public";
     protected $id = 0;
-    protected $role = null;
-    protected $lang = null;
+    protected $group = "";
+    protected $lang = "";
     private $refresh_minutes = 86400;
     private $auth_minutes = 15;
     private $is_owner = false;
@@ -29,7 +29,7 @@ class UserProfile implements \JsonSerializable {
                 } else {
                     $this->user = $payload->user;
                     $this->id = $payload->id;
-                    $this->role = $payload->role;
+                    $this->group = $payload->group;
                     $this->lang = $payload->lang;
                 }
             }
@@ -123,7 +123,7 @@ class UserProfile implements \JsonSerializable {
             "user" => $this->user,
             "id" => $this->id,
             "lang" => $this->lang,
-            "role" => $this->role,
+            "group" => $this->group,
             "is_expired" => $this->is_expired
         ];
     }

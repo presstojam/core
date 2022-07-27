@@ -9,8 +9,7 @@ class UniqueException extends PtjException {
     protected $description = "Unique Exception Failure";
     protected $message = "";
 
-    function __construct($code, $field) {
-        $this->code = $code;
+    function __construct($field, $value) {
         $this->message = json_encode([$field => \PressToJamCore\Cells\ValidationRules::Unique]);
     }
 
