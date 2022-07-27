@@ -5,6 +5,12 @@ class Profile {
 
     protected $routes = [];
     protected $model_perms = [];
+    protected $route;
+
+
+    function inject($flow) {
+        $this->route = new $flow();
+    }
   
     function hasModelPermissions($model, $method) {
         if (!isset($this->model_perms[$model])) return false;

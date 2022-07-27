@@ -28,7 +28,7 @@ class RoutePoint implements \JsonSerializable {
     function __get($name) {
         if (property_exists($this, $name)) return $this->$name;
     }
-
+    
 
     function addChild($child) {
         $this->children[] = $child;
@@ -47,7 +47,7 @@ class RoutePoint implements \JsonSerializable {
     }
 
    
-    function jsonSerialize() {
+    function jsonSerialize() : mixed {
         $arr=[
             "name"=>$this->name, 
             "title"=>$this->title,
