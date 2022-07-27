@@ -180,6 +180,8 @@ class PressToJamSlim {
                     $self->user->is_owner = $self->profile->isOwner($args["model"]);
                 }
             } catch(\Exception $e) {
+                $code = $e->getCode();
+                if ($code > 500) $code = 500;
                 $excep = new HttpException($request, $e->getMessage(), $e->getCode(), $e);
                 if (method_exists($e, "getTitle")) {
                     $excep->setTitle($e->getTitle());
