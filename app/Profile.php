@@ -8,10 +8,6 @@ class Profile {
     protected $route;
 
 
-    function inject($flow) {
-        $this->route = new $flow();
-    }
-  
     function hasModelPermissions($model, $method) {
         if (!isset($this->model_perms[$model])) return false;
         if (!in_array($method, $this->model_perms[$model])) return false;
@@ -19,10 +15,15 @@ class Profile {
     } 
 
 
-    function hasRoutePermissions($route, $flow) {
+    function hasRoutePermissions($route) {
         if (!isset($this->routes[$route])) return false;
-        if (!isset($this->routes[$route][$flow])) return false;
+      
         return true;
+    }
+
+
+    function isOwner($route) {
+        return $this->routes[$route];
     }
 
 

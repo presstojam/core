@@ -67,7 +67,7 @@ class PressToJamSlim {
         $args = $route->getArguments();
         $state = (isset($args["state"])) ? $args["state"] : $method;
 
-        if (!$this->profile->hasRoutePermissions($cat, $flow, $model)) {
+        if (!$this->profile->hasRoutePermissions($cat, $flow)) {
             throw new Exceptions\UserException(403, "The user type " . $this->user->user . " does not have authorisation for route " . $cat . "/" . $flow . "/" . $model);
         }
 
@@ -171,6 +171,7 @@ class PressToJamSlim {
                 }
                  
                 $self->profile = Factory::createProfile($self->user);
+                $self->user->is_owner = $self->profile->isOwner();
             } catch(\Exception $e) {
                 $excep = new HttpException($request, $e->getMessage(), $e->getCode(), $e);
                 $excep->setTitle($e->getTitle());
@@ -281,9 +282,8 @@ class PressToJamSlim {
             $flow = $args['flow'];
             $model = (isset($args["model"])) ? $args["model"] : $flow;
 
-            $flow_point = $self->profile->getRoutePoint($cat, $flow, $model);
-            $self->user->is_owner = $flow_point->is_owner;
-            $response->getBody()->write(json_encode($flow_point));
+            $flow_point = Factory::createRoutePoint($self->user, $flow);
+            $response->getBody()->write(json_encode($flow_point->{ "get" . Factory::camelCase($model) }($self->params)));
             return $response;
         })->add(function($request, $handler) use ($self) {
             return $self->validateRoute($request, $handler);

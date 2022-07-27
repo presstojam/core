@@ -23,6 +23,12 @@ class Factory {
         return new $class_name($user, $params);
     }
 
+
+    static function createRoutePoint($model, $user, $params) {
+        $class_name = "\PressToJam\RoutePoints\\" . self::camelCase($user->user . "_" . $model);
+        return new $class_name();
+    }
+
     static function createModel($model, $user, $pdo, $params, $hooks) {
         $class_name = "\PressToJam\Models\\" . self::camelCase($model);
         return new $class_name($user, $pdo, $params, $hooks);
