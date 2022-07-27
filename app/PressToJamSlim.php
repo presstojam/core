@@ -171,7 +171,14 @@ class PressToJamSlim {
                 }
                  
                 $self->profile = Factory::createProfile($self->user);
-                $self->user->is_owner = $self->profile->isOwner();
+
+                $routeContext = RouteContext::fromRequest($request);
+                $route = $routeContext->getRoute();
+
+                $args = $route->getArguments();
+                if (isset($args["model"])) {
+                    $self->user->is_owner = $self->profile->isOwner($args["model"]);
+                }
             } catch(\Exception $e) {
                 $excep = new HttpException($request, $e->getMessage(), $e->getCode(), $e);
                 $excep->setTitle($e->getTitle());
