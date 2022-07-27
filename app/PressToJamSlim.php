@@ -125,9 +125,13 @@ class PressToJamSlim {
             } catch(Exceptions\ValidationException $e) {
                 throw $e;
             } catch(\Exception $e) {
-                $excep = new HttpException($request, $e->getMessage(), $e->getCode(), $e);
-                $excep->setTitle($e->getTitle());
-                $excep->setDescription($e->getDescription());
+                $code = $e->getCode();
+                if ($code > 500) $code = 500;
+                $excep = new HttpException($request, $e->getMessage(), $code, $e);
+                if (method_exists($e, "getTitle")) {
+                    $excep->setTitle($e->getTitle());
+                    $excep->setDescription($e->getDescription());
+                }
                 throw $excep;
             } 
             return $response;

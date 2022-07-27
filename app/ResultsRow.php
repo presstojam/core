@@ -32,7 +32,7 @@ class ResultsRow implements \JsonSerializable {
         else if (isset($this->cells[$name])) return $this->cells[$name]->value;
         else {
             $kcase = kebabCase($name);
-            if (isset($this->cells[$kcase])) return $this->cells[$kcase];
+            if (isset($this->cells[$kcase])) return $this->cells[$kcase]->value;
         }
     }
 
