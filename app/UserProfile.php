@@ -63,7 +63,7 @@ class UserProfile implements \JsonSerializable {
             "user"=>$this->user, 
             "id"=>$this->id, 
             "lang"=>$this->lang, 
-            "role"=>$this->role
+            "group"=>$this->group
         ];
         
         $token = Configs\Factory::createJWT();
