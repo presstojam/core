@@ -67,7 +67,7 @@ class PressToJamSlim {
         $args = $route->getArguments();
         $state = (isset($args["state"])) ? $args["state"] : $method;
 
-        if (!$this->profile->hasRoutePermissions($cat, $flow)) {
+        if (!$this->profile->hasRoutePermissions($flow)) {
             throw new Exceptions\UserException(403, "The user type " . $this->user->user . " does not have authorisation for route " . $cat . "/" . $flow . "/" . $model);
         }
 
