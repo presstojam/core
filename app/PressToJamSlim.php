@@ -90,9 +90,7 @@ class PressToJamSlim {
         if (!$this->profile->hasModelPermissions($model, $method)) {
             throw new Exceptions\UserException(403, "User " . $this->user->user . " does not have " . $method . " authorisation for model " . $model);
         }
-        
-        $this->user->is_owner = $this->profile->isOwner($args["model"]);
-        
+      
         return $handler->handle($request);
     }
 

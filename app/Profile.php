@@ -23,11 +23,6 @@ class Profile {
     }
 
 
-    function isOwner($route) {
-        return $this->routes[$route];
-    }
-
-
     function getRoutePoint($route, $flow, $model) {
         if (!isset($this->routes[$route])) {
             throw new Exceptions\PtjException("Route " . $route . " doesn't exist");
