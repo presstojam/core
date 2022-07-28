@@ -430,7 +430,7 @@ class PressToJamSlim {
 
         $this->app->group("/core", function (RouteCollectorProxy $group) use ($self) {
             
-            $group->put("/switch-tokens", function (Request $request, Response $response, $args) {
+            $group->put("/switch-tokens", function (Request $request, Response $response, $args) use ($self) {
                 $response = $self->user->switchTokens($request, $response);
                 $response->getBody()->write(json_encode("success"));
                 return $response;
