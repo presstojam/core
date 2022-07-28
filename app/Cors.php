@@ -7,6 +7,7 @@ class Cors {
 
     public $headers=["Content-Type",
     "X-Requested-With",
+    "X-Force-Auth-Cookies",
     "Accept",
     "Origin",
     "Authorization",
