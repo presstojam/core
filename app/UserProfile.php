@@ -25,12 +25,9 @@ class UserProfile implements \JsonSerializable {
                 $token = Configs\Factory::createJWT();
                 $payload = $token->decode($auth->getValue());
                 if (!$payload OR !property_exists($payload, "u")) {
-                    $this->is_expired = true;
+                    throw new Exceptions\UserException(403, "User not authorized, token has expired");
                 } else {
-                    $this->user = $payload->u;
-                    $this->id = $payload->i;
-                    $this->lang = $payload->d;
-                    $this->level = $payload->l;
+                    $this->injectPayload($payload);
                 }
             }
         }
@@ -67,6 +64,14 @@ class UserProfile implements \JsonSerializable {
     }
 
 
+    function injectPayload($payload) {
+        $this->user = $payload->u;
+        $this->id = $payload->i;
+        $this->lang = $payload->d;
+        $this->level = $payload->l;
+    }
+
+
     function save($response) {
         $payload = $this->makePayload();
         
@@ -94,9 +99,11 @@ class UserProfile implements \JsonSerializable {
         $payload = $token->decode($refresh->getValue());
     
         if ($payload) {
-            $access_token = $token->encode($payload, $this->auth_minutes);
+            $this->injectPayload($payload);
+            $access_token = $token->encode($this->makePayload(), $this->auth_minutes);
 
             $cookie_expires = time() + 86400; //24 hours update
+            $cookies = [];
             $cookies[] = $this->createCookie("api-auth", $access_token, $cookie_expires);
 
             $set = new \Dflydev\FigCookies\SetCookies($cookies);
