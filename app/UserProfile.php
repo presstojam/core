@@ -57,14 +57,18 @@ class UserProfile implements \JsonSerializable {
     }
 
 
-
-    function save($response) {
-        $payload = [
+    function makePayload() {
+        return [
             "u"=>$this->user, 
             "i"=>$this->id, 
             "d"=>$this->lang,
             "l"=>$this->level
         ];
+    }
+
+
+    function save($response) {
+        $payload = $this->makePayload();
         
         $token = Configs\Factory::createJWT();
         $access_token = $token->encode($payload, $this->auth_minutes);
@@ -88,7 +92,7 @@ class UserProfile implements \JsonSerializable {
         $auth = FigRequestCookies::get($request, "api-auth");
         $token = Configs\Factory::createJWT();
         $payload = $token->decode($refresh->getValue());
-        $payload = json_decode(json_encode($payload), true);
+    
         if ($payload) {
             $access_token = $token->encode($payload, $this->auth_minutes);
 
@@ -119,12 +123,9 @@ class UserProfile implements \JsonSerializable {
     }
 
     function jsonSerialize() : mixed {
-        return [
-            "user" => $this->user,
-            "id" => $this->id,
-            "lang" => $this->lang,
-            "is_expired" => $this->is_expired
-        ];
+        $payload = $this->makePayload();
+        $payload["is_expired"] = $this->is_expired;
+        return $payload;
     }
 
   
