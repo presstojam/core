@@ -13,7 +13,7 @@ class RoutePoint implements \JsonSerializable {
     protected $refs = [];
     protected $reverse_refs = [];
     protected $sort = false;
-    protected $is_owner = false;
+    protected $level = 0;
     
 
     function __construct($name) {
@@ -56,7 +56,8 @@ class RoutePoint implements \JsonSerializable {
             "children"=>$this->children, 
             "refs"=>$this->refs,
             "reverse_refs"=>$this->reverse_refs,
-            "sort"=>$this->sort
+            "sort"=>$this->sort,
+            "level"=>$this->level
         ];
         return $arr;
     }

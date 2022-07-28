@@ -9,6 +9,7 @@ class UserProfile implements \JsonSerializable {
     protected $user = "public";
     protected $id = 0;
     protected $lang = "";
+    protected $level = 0;
     private $refresh_minutes = 86400;
     private $auth_minutes = 15;
     private $is_owner = false;
@@ -26,9 +27,10 @@ class UserProfile implements \JsonSerializable {
                 if (!$payload) {
                     $this->is_expired = true;
                 } else {
-                    $this->user = $payload->user;
-                    $this->id = $payload->id;
-                    $this->lang = $payload->lang;
+                    $this->user = $payload->u;
+                    $this->id = $payload->i;
+                    $this->lang = $payload->d;
+                    $this->level = $payload->l;
                 }
             }
         }
@@ -58,9 +60,10 @@ class UserProfile implements \JsonSerializable {
 
     function save($response) {
         $payload = [
-            "user"=>$this->user, 
-            "id"=>$this->id, 
-            "lang"=>$this->lang
+            "u"=>$this->user, 
+            "i"=>$this->id, 
+            "d"=>$this->lang,
+            "l"=>$this->level
         ];
         
         $token = Configs\Factory::createJWT();

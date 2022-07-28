@@ -246,6 +246,21 @@ class PressToJamSlim {
         });
 
 
+        $this->app->post('/login/anon/{name}', function (Request $request, Response $response, $args) use ($self) {
+            $name = $args['name'];
+            $profile = Factory::createProfile($name);
+            if (!$profile->anonymous) {
+                throw new HttpException($request, "This profile doesn't allow anonymous connections", 500);
+            }
+            $profile->anonymousCreate($self->user, $self->pdo, $self->params);
+            $response = $self->user->save($response);
+            $response->getBody()->write(json_encode("success"));
+            return $response;
+        })->add(function($request, $handler) use ($self) {
+            return $self->validateProfile($request, $handler);
+        });
+
+
         $this->app->get('/data/{model}[/{state}]', function (Request $request, Response $response, $args) use ($self) {
             $name = $args['model'];
             $state = (isset($args["state"])) ? $args["state"] : "get";
@@ -287,7 +302,7 @@ class PressToJamSlim {
             $flow = $args['flow'];
             $model = (isset($args["model"])) ? $args["model"] : $flow;
 
-            $flow_point = Factory::createRoutePoint($self->user, $flow, $self->params);
+            $flow_point = Factory::createRoutePoint($flow, $self->user, $self->params);
             $response->getBody()->write(json_encode($flow_point->{ "get" . Factory::camelCase($model) }($self->params)));
             return $response;
         })->add(function($request, $handler) use ($self) {

@@ -6,6 +6,7 @@ class Profile {
     protected $routes = [];
     protected $model_perms = [];
     protected $route;
+    protected $anonymous = false;
 
 
     function hasModelPermissions($model, $method) {
@@ -38,6 +39,15 @@ class Profile {
         $route = new $class_name();
         $route->{ "get" . Factory::camelCase($model)}();
         return $route;
+    }
+
+
+    function anonymousCreate($user, $pdo, $params) {
+        $stmt = new PreparedStatement($pdo);
+        $stmt->prepare("INSERT INTO user_login (type) VALUES (?)");
+        $res = $stmt->execute(["type"=>$params->data["type"]]);
+        $user->user = $parms->data["type"];
+        $user->id = $this->pdo->lastInsertId();
     }
 
 

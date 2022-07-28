@@ -25,7 +25,7 @@ class Factory {
 
 
     static function createRoutePoint($model, $user, $params) {
-        $class_name = "\PressToJam\RoutePoints\\" . self::camelCase($user->user . "_" . $model);
+        $class_name = "\PressToJam\RoutePoints\\" . self::camelCase($user->user . "-" . $model);
         return new $class_name();
     }
 
