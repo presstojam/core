@@ -24,7 +24,7 @@ class UserProfile implements \JsonSerializable {
             if ($auth and $auth->getValue()) {
                 $token = Configs\Factory::createJWT();
                 $payload = $token->decode($auth->getValue());
-                if (!$payload) {
+                if (!$payload OR !property_exists($payload, "u")) {
                     $this->is_expired = true;
                 } else {
                     $this->user = $payload->u;
