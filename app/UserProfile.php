@@ -129,7 +129,7 @@ class UserProfile implements \JsonSerializable {
         return $response;
     }
 
-    function jsonSerialize() : mixed {
+    function jsonSerialize() {
         $payload = $this->makePayload();
         $payload["is_expired"] = $this->is_expired;
         return $payload;

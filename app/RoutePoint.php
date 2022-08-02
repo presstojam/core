@@ -47,7 +47,7 @@ class RoutePoint implements \JsonSerializable {
     }
 
    
-    function jsonSerialize() : mixed {
+    function jsonSerialize() {
         $arr=[
             "name"=>$this->name, 
             "title"=>$this->title,
