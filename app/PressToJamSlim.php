@@ -251,7 +251,9 @@ class PressToJamSlim {
 
         $this->app->post('/login/anon/{name}', function (Request $request, Response $response, $args) use ($self) {
             $name = $args['name'];
-            $profile = Factory::createProfile($name);
+            $self->user->user = $name;
+            $self->params->apply(["type"=>$name]);
+            $profile = Factory::createProfile($self->user);
             if (!$profile->anonymous) {
                 throw new HttpException($request, "This profile doesn't allow anonymous connections", 500);
             }
