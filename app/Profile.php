@@ -8,6 +8,10 @@ class Profile {
     protected $route;
     protected $anonymous = false;
 
+    function __get($key) {
+        if (property_exists($this, $key)) return $this->$key;
+    }
+
 
     function hasModelPermissions($model, $method) {
         if (!isset($this->model_perms[$model])) return false;
@@ -40,7 +44,7 @@ class Profile {
     function anonymousCreate($user, $pdo, $params) {
         $stmt = new PreparedStatement($pdo);
         $stmt->prepare("INSERT INTO user_login (type) VALUES (?)");
-        $res = $stmt->execute(["type"=>$params->data["type"]]);
+        $res = $stmt->execute([$params->data["type"]]);
         $user->user = $parms->data["type"];
         $user->id = $this->pdo->lastInsertId();
     }
