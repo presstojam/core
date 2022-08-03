@@ -45,8 +45,8 @@ class Profile {
         $stmt = new PreparedStatement($pdo);
         $stmt->prepare("INSERT INTO user_login (type) VALUES (?)");
         $res = $stmt->execute([$params->data["type"]]);
-        $user->user = $parms->data["type"];
-        $user->id = $this->pdo->lastInsertId();
+        $user->user = $params->data["type"];
+        $user->id = $pdo->lastInsertId();
     }
 
 
