@@ -55,7 +55,7 @@ class SQSHandler  {
     }
 
 
-    function read($callback, $logger = false) {
+    function read($callback, $logger) {
         while (1) {
             try {
                 $result = $this->client->receiveMessage(array(
@@ -79,14 +79,7 @@ class SQSHandler  {
             } catch (AwsException $e) {
                 //going to log that the process has executed and an error has happened,
                 //next time cron checks, it can test for this.
-                if ($logger) {
-                    $logger->addLog("Queue failed: " . $e->getMessage());
-                } else {
-                    file_put_contents("/tmp/failed.txt", $e->getMessage());
-                    $fp = fopen("/tmp/log.txt", 'a');
-                    fwrite($fp, date('Y-m-d H:i:s') . " " . $e->getMessage() . "\n");
-                    fclose($fp);
-                }
+                $logger->critical("Queue failed: " . $e->getMessage());
             }
         }
     }
