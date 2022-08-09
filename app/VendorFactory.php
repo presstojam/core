@@ -1,8 +1,8 @@
 <?php
 
-namespace PressToJamCore\Configs;
+namespace PressToJamCore;
 
-class ServicesFactory {
+class VendorFactory {
 
     static function createS3Writer() {
         return new \PressToJamCore\VendorWrappers\AmazonS3Host(Configs::s());
