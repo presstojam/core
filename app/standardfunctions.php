@@ -44,7 +44,7 @@ if (! function_exists(__NAMESPACE__ . '\kebabCase')) {
 
 if (!function_exists(__NAMESPACE__ . '\env')) {
 
-    function env($val, $default = null) {
+    function env($key, $default = null) {
         return (isset($_ENV[$key])) ? $_ENV[$key] : $default;
     }
     
