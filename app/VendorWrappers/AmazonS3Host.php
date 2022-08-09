@@ -1,6 +1,6 @@
 <?php
 
-namespace PressToJamCore\Services;
+namespace PressToJamCore\VendorWrappers;
 
 use \Aws\S3\S3Client;
 use \Aws\Exception\AwsException;
@@ -14,13 +14,16 @@ class AmazonS3Host
     private $public = false;
     static private $credentials;
 
-    public function __construct(\PressToJamCore\Configs\AWS $config)
+    public function __construct(\PressToJamCore\Configs $configs)
     {
-        $arr = $config->toArr();
-        $this->client = new S3Client($arr['settings']);
-        $this->bucket = $config->resource;
-        $this->path = $config->prefix;
-        $this->public = $config->public;
+        $configs->isRequired("aws", "settings");
+        $configs->isRequired("aws", "bucket");
+    
+       
+        $this->client = new S3Client($configs->getConfig("aws", "settings"));
+        $this->bucket = $configs->getConfig("aws", "bucket");
+        $this->path = $configs->getConfig("aws", "path", "");
+        $this->public = $configs->getConfig("aws", "public", false);
     }
 
 

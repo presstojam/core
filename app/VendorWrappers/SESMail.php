@@ -1,19 +1,17 @@
 <?php
 
-namespace PressToJamCore\Services;
+namespace PressToJamCore\VendorWrappers;
 
-require 'vendor/autoload.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use Aws\Ses\SesClient;
 use Aws\Ses\Exception\SesException;
 
 class SESMail extends PHPMailer {
 
-    public function connect($region = "eu-west-1") {
-        $client = SesClient::factory(array(
-            'version'=> 'latest',     
-            'region' => $region
-        ));
+    public function connect(\PressToJamCore\Configs $configs) {
+        $configs->isRequired("aws", "settings");
+        $configs->isRequired("aws", "bucket");
+        $client = SesClient::factory($configs->getConfig("aws", "settings"));
     }
 
 

@@ -39,3 +39,14 @@ if (! function_exists(__NAMESPACE__ . '\kebabCase')) {
         return str_replace(["___", "_", "-i-d"], ["/", "-", "-id"], $name);
     }
 }
+
+
+
+if (!function_exists(__NAMESPACE__ . '\env')) {
+
+    echo " Creating function env";
+    function env($val, $default) {
+        return (isset($_ENV[$key])) ? $_ENV[$key] : $default;
+    }
+    
+}

@@ -1,6 +1,6 @@
 <?php
 
-namespace PressToJamCore\Services;
+namespace PressToJamCore\VendorWrappers;
 
 
 use Aws\Sqs\SqsClient; 
@@ -10,10 +10,11 @@ class SQSHandler  {
 
     protected $client;
 
-    function __construct(\PressToJamCore\Configs\AWS $config) {
-        $arr = $config->toArr();
-        $this->client = new SqsClient($arr["settings"]);
-        $this->queue = $config->resource;
+    function __construct(\PressToJamCore\Configs $configs) {
+        $configs->isRequired("aws", "settings");
+        $configs->isRequired("aws", "sqsarn");
+        $this->client = new SqsClient($configs->getConfig("aws", "settings"));
+        $this->queue = $configs->getConfig("aws", "sqsarn");
     }
 
 
