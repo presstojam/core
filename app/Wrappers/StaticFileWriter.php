@@ -1,6 +1,6 @@
 <?php
 
-namespace PressToJamCore\VendorWrappers;
+namespace PressToJamCore\Wrappers;
 
 class StaticFileWriter {
 

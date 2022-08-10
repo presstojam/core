@@ -1,5 +1,5 @@
 <?php
-namespace PressToJamCore\VendorWrappers;
+namespace PressToJamCore\Wrappers;
 
 class LocalHost {
     protected $dir;

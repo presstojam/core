@@ -22,7 +22,7 @@ class UserProfile implements \JsonSerializable {
             $auth = FigRequestCookies::get($request, "api-auth");
             //otherwise check if set via cookie
             if ($auth and $auth->getValue()) {
-                $token = Configs\Factory::createJWT();
+                $token = WrapperFactory::createJWT();
                 $payload = $token->decode($auth->getValue());
                 if (!$payload OR !property_exists($payload, "u")) {
                     throw new Exceptions\UserException(403, "User not authorized, token has expired");
@@ -75,7 +75,7 @@ class UserProfile implements \JsonSerializable {
     function save($response) {
         $payload = $this->makePayload();
         
-        $token = Configs\Factory::createJWT();
+        $token = WrapperFactory::createJWT();
         $access_token = $token->encode($payload, $this->auth_minutes);
         $refresh_token = $token->encode($payload, $this->refresh_minutes );
 
@@ -95,7 +95,7 @@ class UserProfile implements \JsonSerializable {
     function switchTokens($request, $response) {
         $refresh = FigRequestCookies::get($request, "api-refresh");
         $auth = FigRequestCookies::get($request, "api-auth");
-        $token = Configs\Factory::createJWT();
+        $token = WrapperFactory::createJWT();
         $payload = $token->decode($refresh->getValue());
     
         if ($payload) {

@@ -1,6 +1,6 @@
 <?php
 
-namespace PressToJamCore;
+namespace PressToJamCore\Wrappers;
 
 class APIClient {
 

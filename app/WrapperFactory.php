@@ -2,28 +2,26 @@
 
 namespace PressToJamCore;
 
-class VendorFactory {
+class WrapperFactory {
 
     static function createS3Writer() {
-        return new \PressToJamCore\VendorWrappers\AmazonS3Host(Configs::s());
+        return new \PressToJamCore\Wrappers\AmazonS3Host(Configs::s());
     }
 
 
     static function createSQSHandler($config = null) {
         $configs = Configs::s()->getConfigGroup("aws");
-        return new \PressToJamCore\Services\SQSHandler(Configs::s());
+        return new \PressToJamCore\Wrappers\SQSHandler(Configs::s());
     }
 
 
     static function createCloudFrontManager($config = null) {
-        $configs = Configs::s()->getConfigGroup("aws");
-        return new \PressToJamCore\VendorWrappers\CloudFrontManager(Configs::s());
+        return new \PressToJamCore\Wrappers\CloudFrontManager(Configs::s());
     }
 
 
     static function createJWT($config = null) {
-        $configs = Configs::s()->getConfigGroup("jwt");
-        return new \PressToJamCore\VendorWrappers\JWTToken(Configs::s());
+        return new \PressToJamCore\Wrappers\JWTToken(Configs::s());
     }
 
 

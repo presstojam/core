@@ -1,5 +1,5 @@
 <?php
-namespace PressToJamCore\VendorWrappers;
+namespace PressToJamCore\Wrappers;
 use \Firebase\JWT\JWT;
 use \Firebase\JWT\Key;
 

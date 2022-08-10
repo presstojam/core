@@ -1,5 +1,5 @@
 <?php
-namespace PressToJamCore\VendorWrappers;
+namespace PressToJamCore\Wrappers;
 
 use Aws\CloudFront\CloudFrontClient; 
 use Aws\Exception\AwsException;
