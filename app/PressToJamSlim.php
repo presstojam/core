@@ -26,7 +26,7 @@ class PressToJamSlim {
         $this->app = AppFactory::create();
               
         //set up all our services here
-        $this->pdo = VendorFactory::createPDO();
+        $this->pdo = WrapperFactory::createPDO();
         $this->hooks = new Hooks($custom_link);
         $this->params = new Params();
       
