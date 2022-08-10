@@ -17,13 +17,13 @@ class AmazonS3Host
     public function __construct(\PressToJamCore\Configs $configs)
     {
         $configs->isRequired("aws", "settings");
-        $configs->isRequired("aws", "bucket");
+        $configs->isRequired("aws", "s3bucket");
     
        
         $this->client = new S3Client($configs->getConfig("aws", "settings"));
-        $this->bucket = $configs->getConfig("aws", "bucket");
-        $this->path = $configs->getConfig("aws", "path", "");
-        $this->public = $configs->getConfig("aws", "public", false);
+        $this->bucket = $configs->getConfig("aws", "s3bucket");
+        $this->path = $configs->getConfig("aws", "s3path", "");
+        $this->public = $configs->getConfig("aws", "s3public", false);
     }
 
 
