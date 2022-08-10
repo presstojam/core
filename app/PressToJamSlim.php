@@ -26,7 +26,7 @@ class PressToJamSlim {
         $this->app = AppFactory::create();
               
         //set up all our services here
-        $this->pdo = Configs\Factory::createPDO();
+        $this->pdo = WrapperFactory::createPDO();
         $this->hooks = new Hooks($custom_link);
         $this->params = new Params();
       
@@ -253,6 +253,7 @@ class PressToJamSlim {
             $name = $args['name'];
             $self->user->user = $name;
             $self->params->apply(["type"=>$name]);
+           
             $profile = Factory::createProfile($self->user);
             if (!$profile->anonymous) {
                 throw new HttpException($request, "This profile doesn't allow anonymous connections", 500);
@@ -345,7 +346,7 @@ class PressToJamSlim {
 
             $model = Factory::createRepo($name, $self->user, $self->pdo, $self->params, $self->hooks);
             $res = $model->primary();
-            $s3writer = Configs\Factory::createS3Writer();
+            $s3writer = VendorFactory::createS3Writer();
 
             $body = file_get_contents('php://input');
             try {
@@ -370,7 +371,7 @@ class PressToJamSlim {
             $model = Factory::createRepo($name, $self->user, $self->pdo, $self->params, $self->hooks);
             $res = $model->primary();
             
-            $s3writer = Configs\Factory::createS3Writer();
+            $s3writer = VendorFactory::createS3Writer();
             try {
                 echo $s3writer->get($res->$field);
             } catch(\Exception $e) {
@@ -468,7 +469,7 @@ class PressToJamSlim {
             
             $group->get("/languages", function (Request $request, Response $response, $args) use ($self) {
                 $lang = new \PressToJam\Dictionary\Languages();
-                $response->getBody()->write($lang->get());
+                $response->getBody()->write(json_encode($lang->get()));
                 return $response;
             });
 

@@ -9,7 +9,7 @@ class AssetCell extends MetaCell {
     protected $chunk_size = 0;
     protected $tmp_file_dir;
     protected $hook;
-    protected $dir;
+    protected $dir = "";
   
 
     function __set($name, $value) {

@@ -1,5 +1,5 @@
 <?php
-namespace PressToJamCore;
+namespace PressToJamCore\Wrappers;
 use \Firebase\JWT\JWT;
 use \Firebase\JWT\Key;
 
@@ -9,8 +9,9 @@ class JWTToken {
     private $key;
     private $has_expired = false;
   
-    function __construct(Configs\JWT $token) {
-        $this->key = $token->secret;
+    function __construct(\PressToJamCore\Configs $configs) {
+        $configs->isRequired("jwt", "secret");
+        $this->key = $configs->getConfig("jwt", "secret");
     }
 
 

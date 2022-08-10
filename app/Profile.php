@@ -8,11 +8,9 @@ class Profile {
     protected $route;
     protected $anonymous = false;
 
-    
     function __get($key) {
         if (property_exists($this, $key)) return $this->$key;
     }
-
 
 
     function hasModelPermissions($model, $method) {

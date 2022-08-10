@@ -1,5 +1,5 @@
 <?php
-namespace PressToJamCore\Services;
+namespace PressToJamCore\Wrappers;
 
 use Aws\CloudFront\CloudFrontClient; 
 use Aws\Exception\AwsException;
@@ -9,10 +9,11 @@ class CloudFrontManager {
     private $client;
     private $distribution_id;
 
-    function __construct(\PressToJamCore\Configs\AWS $config) {
-        $arr = $config->toArr();
-        $this->client = new CloudFrontClient($arr['settings']);
-        $this->distribution_id = $config->resource;
+    function __construct(\PressToJamCore\Configs $configs) {
+        $configs->isRequired("aws", "settings");
+        $configs->isRequired("aws", "cfdistributionid");
+        $this->client = new CloudFrontClient($configs->getConfig("aws", "settings"));
+        $this->distribution_id =$configs->getConfig("aws", "cfdistributionid");
     }
 
 
