@@ -17,13 +17,13 @@ class AmazonS3Host
     public function __construct(\PressToJamCore\Configs $configs)
     {
         $configs->isRequired("aws", "settings");
-        $configs->isRequired("aws", "bucket");
+        $configs->isRequired("aws", "s3bucket");
     
        
         $this->client = new S3Client($configs->getConfig("aws", "settings"));
-        $this->bucket = $configs->getConfig("aws", "bucket");
-        $this->path = $configs->getConfig("aws", "path", "");
-        $this->public = $configs->getConfig("aws", "public", false);
+        $this->bucket = $configs->getConfig("aws", "s3bucket");
+        $this->path = $configs->getConfig("aws", "s3path", "");
+        $this->public = $configs->getConfig("aws", "s3public", false);
     }
 
 
@@ -85,7 +85,7 @@ class AmazonS3Host
         }
     }
 
-    public function get($file_name)
+    public function pull($file_name)
     {
         $file_name = trim($this->path . $file_name);
         try {
@@ -97,6 +97,10 @@ class AmazonS3Host
         } catch (S3Exception $e) {
             throw new \Exception($e->getMessage());
         }
+    }
+
+    public function get($file_name) {
+        return $this->pull($file_name);
     }
 
     public function list($dir = "") {
@@ -115,6 +119,11 @@ class AmazonS3Host
 
     public function fileExists($key) {
         return $this->client->doesObjectExist($this->bucket, $this->path . $key);
+    }
+
+
+    public function has($key) {
+        return $this->fileExists($key);
     }
 
 

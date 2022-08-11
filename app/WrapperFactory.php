@@ -4,18 +4,18 @@ namespace PressToJamCore;
 
 class WrapperFactory {
 
-    static function createS3Writer() {
+    static function createS3() {
         return new \PressToJamCore\Wrappers\AmazonS3Host(Configs::s());
     }
 
 
-    static function createSQSHandler($config = null) {
+    static function createSQS($config = null) {
         $configs = Configs::s()->getConfigGroup("aws");
         return new \PressToJamCore\Wrappers\SQSHandler(Configs::s());
     }
 
 
-    static function createCloudFrontManager($config = null) {
+    static function createCloudFront($config = null) {
         return new \PressToJamCore\Wrappers\CloudFrontManager(Configs::s());
     }
 
