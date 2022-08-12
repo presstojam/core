@@ -262,8 +262,6 @@ class PressToJamSlim {
             $response = $self->user->save($response);
             $response->getBody()->write(json_encode("success"));
             return $response;
-        })->add(function($request, $handler) use ($self) {
-            return $self->validateProfile($request, $handler);
         });
 
 
