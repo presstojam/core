@@ -345,7 +345,7 @@ class PressToJamSlim {
 
             $model = Factory::createRepo($name, $self->user, $self->pdo, $self->params, $self->hooks);
             $res = $model->primary();
-            $s3writer = VendorFactory::createS3Writer();
+            $s3writer = WrapperFactory::createS3Writer();
 
             $body = file_get_contents('php://input');
             try {
@@ -370,7 +370,7 @@ class PressToJamSlim {
             $model = Factory::createRepo($name, $self->user, $self->pdo, $self->params, $self->hooks);
             $res = $model->primary();
             
-            $s3writer = VendorFactory::createS3Writer();
+            $s3writer = WrapperFactory::createS3Writer();
             try {
                 echo $s3writer->get($res->$field);
             } catch(\Exception $e) {
