@@ -28,7 +28,7 @@ class AmazonS3Host
 
 
     public function invalidateCache($paths) {
-        $client = \PressToJamCore\Configs\Factory::createCloudFrontManager();
+        $client = \PressToJamCore\WrapperFactory::createCloudFront();
 
         foreach($paths as $num=>$path) {
             $paths[$num] = "/" . ltrim($path, "/");
