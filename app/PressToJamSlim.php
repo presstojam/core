@@ -301,39 +301,7 @@ class PressToJamSlim {
             return $self->validateModel($request, $handler);
         });
 
-    
-        $this->app->get("/route/{route}/{flow}[/{model}]", function ($request, $response, $args) use ($self) {
-            $cat = $args["route"];
-            $flow = $args['flow'];
-            $model = (isset($args["model"])) ? $args["model"] : $flow;
-
-            $flow_point = Factory::createRoutePoint($flow, $self->user, $self->params);
-            $response->getBody()->write(json_encode($flow_point->{ "get" . Factory::camelCase($model) }($self->params)));
-            return $response;
-        })->add(function($request, $handler) use ($self) {
-            return $self->validateRoute($request, $handler);
-        });
-
-        $this->app->get("/slug/{route}/{flow}[/{model}]", function ($request, $response, $args) use ($self) {
-            $cat = $args["route"];
-            $flow = $args['flow'];
-            $model = (isset($args["model"])) ? $args["model"] : $flow;
-
-            if ($flow == $cat) {
-                $response->getBody()->write(json_encode([]));
-                return $response;
-            }
-
-            $self->params->to = $flow;
-
-            $model = Factory::createRepo($name, $self->user, $self->pdo, $self->params, $self->hooks);
-            $str = json_encode($model->slug());
-            $response->getBody()->write($str);
-            return $response;
-        })->add(function($request, $handler) use ($self) {
-            return $self->validateRoute($request, $handler);
-        });
-
+ 
 
         $this->app->patch("/asset/{model}/{field}/{id}", function($request, $response, $args) use ($self) {
             $name = $args["model"];
@@ -428,8 +396,8 @@ class PressToJamSlim {
             });
         }
 
-        $this->app->get("/nav/site-map", function($request, $response) use ($self) {
-            $response->getBody()->write(json_encode($self->profile->getNav()));
+        $this->app->get("/site-map", function($request, $response) use ($self) {
+            $response->getBody()->write(json_encode($self->profile->getSitemap()));
             return $response;
         });
 
