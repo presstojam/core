@@ -76,6 +76,10 @@ class MetaCell {
         }
     }
 
+    function mapToGetStmt() {
+        return $this->alias . "." . $this->name;
+    }
+
 
     function mapToStmtFilter($col) {
         return $col . " = ?";

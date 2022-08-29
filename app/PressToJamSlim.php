@@ -53,39 +53,14 @@ class PressToJamSlim {
     }
 
 
-    function validateRoute($request, $handler) {
-
-    
-        $routeContext = RouteContext::fromRequest($request);
-        $route = $routeContext->getRoute();
-
-        $cat = $route->getArgument("route");
-        $flow = $route->getArgument("flow");
-        $model = $route->getArgument("name");
-        if (!$model) $model = $flow;
-        $method = strtolower($request->getMethod());
-        $args = $route->getArguments();
-        $state = (isset($args["state"])) ? $args["state"] : $method;
-
-        if (!$this->profile->hasRoutePermissions($flow)) {
-            throw new Exceptions\UserException(403, "The user type " . $this->user->user . " does not have authorisation for route " . $cat . "/" . $flow . "/" . $model);
-        }
-
-        return $handler->handle($request);
-    }
-
-
-    function validateModel($request, $handler, $method = null) {
+    function validateModel($request, $handler) {
 
         $routeContext = RouteContext::fromRequest($request);
         $route = $routeContext->getRoute();
 
         $model = $route->getArgument("model");
-        if (!$method) {
-            $args = $route->getArguments();
-            $method = (isset($args["state"])) ? $args["state"] : strtolower($request->getMethod());
-        }
-       
+        $method = strtolower($request->getMethod());
+         
 
         if (!$this->profile->hasModelPermissions($model, $method)) {
             throw new Exceptions\UserException(403, "User " . $this->user->user . " does not have " . $method . " authorisation for model " . $model);
@@ -346,7 +321,7 @@ class PressToJamSlim {
             }
             exit;
         })->add(function($request, $handler) use ($self) {
-            return $self->validateModel($request, $handler, "viewasset");
+            return $self->validateModel($request, $handler);
         });
 
         $this->app->get("/reference/{model}/{field}", function($request, $response, $args) use ($self) {
@@ -367,7 +342,7 @@ class PressToJamSlim {
             $response->getBody()->write(json_encode($results));
             return $response;
         })->add(function($request, $handler) use ($self) {
-            return $self->validateModel($request, $handler, "reference");
+            return $self->validateModel($request, $handler);
         });
 
         $this->app->get("/dictionary", function($request, $response, $args) use ($self) {
