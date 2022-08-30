@@ -110,8 +110,7 @@ class UserProfile implements \JsonSerializable {
             $response = $set->renderIntoSetCookieHeader($response);
             return $response;
         } else {
-            //$response = $this->logout($response);
-            throw new Exceptions\UserException(401, "User not authenticated");
+            return $this->logout($response);
         }
     }
 
