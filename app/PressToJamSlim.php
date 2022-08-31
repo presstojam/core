@@ -346,7 +346,7 @@ class PressToJamSlim {
         });
 
         $this->app->get("/dictionary", function($request, $response, $args) use ($self) {
-            $dict = file_get_contents(env("_ROOT_") . "/dictionary/" . $self->user->user . ".json");
+            $dict = file_get_contents(env("_ROOT_") . "/Dictionary/" . $self->user->user . ".json");
             $response->getBody()->write($dict);
             return $response;        
         });

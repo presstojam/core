@@ -50,10 +50,3 @@ if (!function_exists(__NAMESPACE__ . '\env')) {
     
 }
 
-if (!function_exists(__NAMESPACE__ . '\regAPI')) {
-
-    function regAPI($root) {
-        regAutoload("PressToJam", $root);
-        $_ENV["_ROOT_"] =$root;
-    }
-}
