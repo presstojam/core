@@ -346,9 +346,7 @@ class PressToJamSlim {
         });
 
         $this->app->get("/dictionary", function($request, $response, $args) use ($self) {
-            $lang = new \PressToJam\Dictionary\Languages();
-            if ($self->user->lang) $lang->change($self->user->lang);
-            $dict = $lang->getDictionary($self->user->user, $self->user->role);
+            $dict = file_get_contents(env("_ROOT_") . "/dictionary/" . $self->user->user . ".json");
             $response->getBody()->write($dict);
             return $response;        
         });
