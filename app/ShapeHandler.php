@@ -57,7 +57,7 @@ class ShapeHandler
                         $shape->addField($slug . $calias, $cell);
                     }
                 } else if ($alias == "*reference") {
-                    $aliases = $collection->getReferenceAliases();
+                    $aliases = $collection->getSummaryAliases();
                     foreach($aliases as $calias) {
                         $cell = $this->createCell($collection, $calias);
                         $shape->addField($slug . $calias, $cell);
