@@ -264,19 +264,6 @@ class PressToJamSlim {
         });
 
 
-        $this->app->map(['GET','POST','PUT'], "/meta/{model}[/{state}]", function ($request, $response, $args) use ($self) {
-            $model = $args["model"];
-            $state = (isset($args["state"])) ? $args["state"] : strtolower($request->getMethod());
-
-            $route = Factory::createRoute($model, $self->user, $self->params);
-            $arr = $route->$state();
-            $response->getBody()->write(json_encode($arr));
-            return $response;
-        })->add(function($request, $handler) use ($self) {
-            return $self->validateModel($request, $handler);
-        });
-
- 
 
         $this->app->patch("/asset/{model}/{field}/{id}", function($request, $response, $args) use ($self) {
             $name = $args["model"];
