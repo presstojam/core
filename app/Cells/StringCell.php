@@ -76,7 +76,7 @@ class StringCell extends MetaCell {
 
     function toSchema() {
         $arr = parent::toSchema();
-        $arr["type"] = "String";
+        $arr["type"] = "string";
         if ($this->encrypted) $arr["encrypted"] = true;
         return $arr;
     }

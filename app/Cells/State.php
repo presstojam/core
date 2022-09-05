@@ -28,7 +28,7 @@ class State
         $arr=[];
         $arr["depends_on"] = $this->depends_on;
         $arr["depends_val"] = $this->depends_val;
-        $arr = array_merge($arr, $this->field->toSchema());
+        $arr["data"] = $this->field->toSchema();
         return $arr;
     }
 }

@@ -142,7 +142,7 @@ class AssetCell extends MetaCell {
 
     function toSchema() {
         $arr = parent::toSchema();
-        $arr["type"] = "Asset";
+        $arr["type"] = "asset";
         return $arr;
     }
 

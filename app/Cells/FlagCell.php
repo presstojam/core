@@ -56,7 +56,7 @@ class FlagCell extends MetaCell {
 
     function toSchema() {
         $arr=parent::toSchema();
-        $arr["type"] = "Flag";
+        $arr["type"] = "flag";
         return $arr;
     }
 }

@@ -49,7 +49,7 @@ class TimeCell extends MetaCell {
     
     function toSchema() {
         $arr=parent::toSchema();
-        $arr["type"] = "Time";
+        $arr["type"] = "time";
         $arr["format"] = $this->format;
         return $arr;
     }

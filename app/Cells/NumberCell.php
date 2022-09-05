@@ -77,7 +77,7 @@ class NumberCell extends MetaCell {
 
     function toSchema() {
         $arr = parent::toSchema();
-        $arr["type"] = "Number";
+        $arr["type"] = "number";
         $arr["round"] = $this->round;
         return $arr;
     }

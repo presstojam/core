@@ -55,7 +55,7 @@ class IdCell extends MetaCell {
 
     function toSchema() {
         $arr=parent::toSchema();
-        $arr["type"] = "ID";
+        $arr["type"] = "id";
         if ($this->is_primary) {
             $arr["is_primary"] = true;
         } else if ($this->is_parent) {
