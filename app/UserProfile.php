@@ -8,7 +8,6 @@ use \Dflydev\FigCookies\FigResponseCookies;
 class UserProfile implements \JsonSerializable {
     protected $user = "public";
     protected $id = 0;
-    protected $lang = "";
     protected $level = 0;
     private $refresh_minutes = 86400;
     private $auth_minutes = 15;
@@ -58,7 +57,6 @@ class UserProfile implements \JsonSerializable {
         return [
             "u"=>$this->user, 
             "i"=>$this->id, 
-            "d"=>$this->lang,
             "l"=>$this->level
         ];
     }
@@ -67,7 +65,6 @@ class UserProfile implements \JsonSerializable {
     function injectPayload($payload) {
         $this->user = $payload->u;
         $this->id = $payload->i;
-        $this->lang = $payload->d;
         $this->level = $payload->l;
     }
 
