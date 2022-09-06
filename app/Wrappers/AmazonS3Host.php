@@ -28,7 +28,7 @@ class AmazonS3Host
 
 
     public function invalidateCache($paths) {
-        $client = \PressToJamCore\Configs\Factory::createCloudFrontManager();
+        $client = \PressToJamCore\WrapperFactory::createCloudFront();
 
         foreach($paths as $num=>$path) {
             $paths[$num] = "/" . ltrim($path, "/");
@@ -56,7 +56,7 @@ class AmazonS3Host
             "pdf"=>"application/pdf",
             "odt"=>"application/vnd.oasis.opendocument.text");
 
-        $ext = pathinfo($file_name, PATHINFO_EXTENSION);
+        $ext = pathinfo($file_name, \PATHINFO_EXTENSION);
         $content_type =  (isset($content_types[$ext])) ? $content_types[$ext] : "application/octet-stream";
 
         $file_name = trim($this->path . $file_name);

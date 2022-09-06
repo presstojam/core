@@ -50,19 +50,12 @@ class ShapeHandler
                         $cell = $this->createCell($collection, $calias);
                         $shape->addField($slug . $calias, $cell);
                     }
-                } else if ($alias == "*summary") {
+                } else if ($alias == "*summary" OR $alias == "*reference") {
                     $aliases = $collection->getSummaryAliases();
                     foreach($aliases as $calias) {
                         $cell = $this->createCell($collection, $calias);
                         $shape->addField($slug . $calias, $cell);
                     }
-                } else if ($alias == "*reference") {
-                    $aliases = $collection->getReferenceAliases();
-                    foreach($aliases as $calias) {
-                        $cell = $this->createCell($collection, $calias);
-                        $shape->addField($slug . $calias, $cell);
-                    }
-                
                 } else {
                     $cell =  $this->createCell($collection, $alias);
                     if ($cell->encrypted and $outer) {

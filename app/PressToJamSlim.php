@@ -53,39 +53,14 @@ class PressToJamSlim {
     }
 
 
-    function validateRoute($request, $handler) {
-
-    
-        $routeContext = RouteContext::fromRequest($request);
-        $route = $routeContext->getRoute();
-
-        $cat = $route->getArgument("route");
-        $flow = $route->getArgument("flow");
-        $model = $route->getArgument("name");
-        if (!$model) $model = $flow;
-        $method = strtolower($request->getMethod());
-        $args = $route->getArguments();
-        $state = (isset($args["state"])) ? $args["state"] : $method;
-
-        if (!$this->profile->hasRoutePermissions($flow)) {
-            throw new Exceptions\UserException(403, "The user type " . $this->user->user . " does not have authorisation for route " . $cat . "/" . $flow . "/" . $model);
-        }
-
-        return $handler->handle($request);
-    }
-
-
-    function validateModel($request, $handler, $method = null) {
+    function validateModel($request, $handler) {
 
         $routeContext = RouteContext::fromRequest($request);
         $route = $routeContext->getRoute();
 
         $model = $route->getArgument("model");
-        if (!$method) {
-            $args = $route->getArguments();
-            $method = (isset($args["state"])) ? $args["state"] : strtolower($request->getMethod());
-        }
-       
+        $method = strtolower($request->getMethod());
+         
 
         if (!$this->profile->hasModelPermissions($model, $method)) {
             throw new Exceptions\UserException(403, "User " . $this->user->user . " does not have " . $method . " authorisation for model " . $model);
@@ -288,51 +263,6 @@ class PressToJamSlim {
         });
 
 
-        $this->app->map(['GET','POST','PUT'], "/meta/{model}[/{state}]", function ($request, $response, $args) use ($self) {
-            $model = $args["model"];
-            $state = (isset($args["state"])) ? $args["state"] : strtolower($request->getMethod());
-
-            $route = Factory::createRoute($model, $self->user, $self->params);
-            $arr = $route->$state();
-            $response->getBody()->write(json_encode($arr));
-            return $response;
-        })->add(function($request, $handler) use ($self) {
-            return $self->validateModel($request, $handler);
-        });
-
-    
-        $this->app->get("/route/{route}/{flow}[/{model}]", function ($request, $response, $args) use ($self) {
-            $cat = $args["route"];
-            $flow = $args['flow'];
-            $model = (isset($args["model"])) ? $args["model"] : $flow;
-
-            $flow_point = Factory::createRoutePoint($flow, $self->user, $self->params);
-            $response->getBody()->write(json_encode($flow_point->{ "get" . Factory::camelCase($model) }($self->params)));
-            return $response;
-        })->add(function($request, $handler) use ($self) {
-            return $self->validateRoute($request, $handler);
-        });
-
-        $this->app->get("/slug/{route}/{flow}[/{model}]", function ($request, $response, $args) use ($self) {
-            $cat = $args["route"];
-            $flow = $args['flow'];
-            $model = (isset($args["model"])) ? $args["model"] : $flow;
-
-            if ($flow == $cat) {
-                $response->getBody()->write(json_encode([]));
-                return $response;
-            }
-
-            $self->params->to = $flow;
-
-            $model = Factory::createRepo($name, $self->user, $self->pdo, $self->params, $self->hooks);
-            $str = json_encode($model->slug());
-            $response->getBody()->write($str);
-            return $response;
-        })->add(function($request, $handler) use ($self) {
-            return $self->validateRoute($request, $handler);
-        });
-
 
         $this->app->patch("/asset/{model}/{field}/{id}", function($request, $response, $args) use ($self) {
             $name = $args["model"];
@@ -344,7 +274,7 @@ class PressToJamSlim {
 
             $model = Factory::createRepo($name, $self->user, $self->pdo, $self->params, $self->hooks);
             $res = $model->primary();
-            $s3writer = VendorFactory::createS3Writer();
+            $s3writer = WrapperFactory::createS3();
 
             $body = file_get_contents('php://input');
             try {
@@ -369,7 +299,7 @@ class PressToJamSlim {
             $model = Factory::createRepo($name, $self->user, $self->pdo, $self->params, $self->hooks);
             $res = $model->primary();
             
-            $s3writer = VendorFactory::createS3Writer();
+            $s3writer = WrapperFactory::createS3();
             try {
                 echo $s3writer->get($res->$field);
             } catch(\Exception $e) {
@@ -377,7 +307,7 @@ class PressToJamSlim {
             }
             exit;
         })->add(function($request, $handler) use ($self) {
-            return $self->validateModel($request, $handler, "viewasset");
+            return $self->validateModel($request, $handler);
         });
 
         $this->app->get("/reference/{model}/{field}", function($request, $response, $args) use ($self) {
@@ -398,13 +328,11 @@ class PressToJamSlim {
             $response->getBody()->write(json_encode($results));
             return $response;
         })->add(function($request, $handler) use ($self) {
-            return $self->validateModel($request, $handler, "reference");
+            return $self->validateModel($request, $handler);
         });
 
         $this->app->get("/dictionary", function($request, $response, $args) use ($self) {
-            $lang = new \PressToJam\Dictionary\Languages();
-            if ($self->user->lang) $lang->change($self->user->lang);
-            $dict = $lang->getDictionary($self->user->user, $self->user->role);
+            $dict = file_get_contents(env("_ROOT_") . "/Dictionary/" . $self->user->user . ".json");
             $response->getBody()->write($dict);
             return $response;        
         });
@@ -427,8 +355,8 @@ class PressToJamSlim {
             });
         }
 
-        $this->app->get("/nav/site-map", function($request, $response) use ($self) {
-            $response->getBody()->write(json_encode($self->profile->getNav()));
+        $this->app->get("/site-map", function($request, $response) use ($self) {
+            $response->getBody()->write(json_encode($self->profile->getSitemap()));
             return $response;
         });
 

@@ -4,27 +4,29 @@
 
 use PressToJamCore\env;
 
-return ["pdo", [
-    "name"=>env('dbname'),
-    "host"=>env('dbhost'),
-    "port"=>env('dbport', 3306),
-    "user"=>env('dbuser'),
-    "pass"=>env('dbpass'),
-    "cert"=>env('dbcert')
+return ["pdo" => [
+    "name"=>PressToJamCore\env('dbname'),
+    "host"=>PressToJamCore\env('dbhost'),
+    "port"=>PressToJamCore\env('dbport', 3306),
+    "user"=>PressToJamCore\env('dbuser'),
+    "pass"=>PressToJamCore\env('dbpass'),
+    "cert"=>PressToJamCore\env('dbcert')
 ],
-"aws", [
-    "s3bucket"=>env("s3bucket"),
-    "s3path"=>env("s3path"),
-    "sqsarn"=>env("sqsarn"),
-    "cfdistributionid"=>env("cfdistid"),
+"jwt" => [
+    "secret"=>PressToJamCore\env("jwtkey")
+],
+"aws" => [
+    "s3bucket"=>PressToJamCore\env("s3bucket"),
+    "s3path"=>PressToJamCore\env("s3path"),
+    "sqsarn"=>PressToJamCore\env("sqsarn"),
+    "cfdistributionid"=>PressToJamCore\env("cfdistid"),
     "settings"=> [
         "region" =>"eu-west-1",
         "version" => "latest",
         "credentials"=>[
-            "user"=>env("awsuser"),
-            "pass"=>env("pass")
+            "user"=>PressToJamCore\env("awsuser"),
+            "pass"=>PressToJamCore\env("pass")
         ]
-    ]
-]
-        ];
+   ]
+]];
 

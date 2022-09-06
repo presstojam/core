@@ -25,6 +25,8 @@ class MetaCell {
     protected $alias;
     protected $slug;
     protected $immutable = false;
+    protected $system = false;
+    protected $background = false;
     protected $last_error = null;
     protected $model;
     protected $states = [];
@@ -76,6 +78,10 @@ class MetaCell {
         }
     }
 
+    function mapToGetStmt() {
+        return $this->alias . "." . $this->name;
+    }
+
 
     function mapToStmtFilter($col) {
         return $col . " = ?";
@@ -107,6 +113,8 @@ class MetaCell {
         $arr["immutable"] = $this->immutable;
         if ($this->default) $arr["default"] = $this->default;
         if ($this->summary) $arr["summary"] = true;
+        if ($this->system) $arr["system"] = true;
+        if ($this->background) $arr["background"] = true;
         if ($this->states) {
             $arr["states"] = [];
             foreach($this->states as $state) {

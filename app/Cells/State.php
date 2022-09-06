@@ -6,6 +6,7 @@ class State
 {
     protected $depends_on;
     protected $depends_val;
+    protected $default = false;
     protected $field;
 
 
@@ -26,9 +27,11 @@ class State
 
     function toSchema() {
         $arr=[];
+        if (!$this->depends_val) $this->default = true;
         $arr["depends_on"] = $this->depends_on;
         $arr["depends_val"] = $this->depends_val;
-        $arr = array_merge($arr, $this->field->toSchema());
+        $arr["data"] = $this->field->toSchema();
+        $arr["default"] = $this->default;
         return $arr;
     }
 }
