@@ -314,16 +314,9 @@ class PressToJamSlim {
             
             $name = $args["model"];
             $field = $args["field"];
-            if (isset($self->params->data["--id"])) {
-                $id= $self->params->data["--id"];
-                $is_parent = false;
-            } else {
-                $id = $self->params->data["--parentid"];
-                $is_parent = true;
-            }
-           
+            $id = (isset($self->params->data["--parentid"])) ? $self->params->data["--parentid"] : 0;
             $ref = Factory::createReference($name);
-            $results = $ref->{ "get" . Factory::camelCase($field) }($id, $self->user, $self->pdo, $is_parent);
+            $results = $ref->{ "get" . Factory::camelCase($field) }($id, $self->user, $self->pdo);
         
             $response->getBody()->write(json_encode($results));
             return $response;
