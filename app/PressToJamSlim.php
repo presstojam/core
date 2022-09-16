@@ -315,7 +315,7 @@ class PressToJamSlim {
             
             $name = $args["model"];
             $field = $args["field"];
-            $id = (isset($self->params->data["--parentid"])) ? $self->params->data["--parentid"] : 0;
+            $id = (isset($self->params->data["--parent"])) ? $self->params->data["--parent"] : 0;
             $ref = Factory::createReference($name);
             $results = $ref->{ "get" . Factory::camelCase($field) }($id, $self->user, $self->pdo);
         
