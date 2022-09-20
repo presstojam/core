@@ -142,7 +142,7 @@ class PressToJamSlim {
         $this->app->add(function($request, $handler) use ($self) {
             try {
                 if (!$self->user) {
-                    $force_auth = $request->getHeaderLine('X-FORCE-AUTH-COOKIES');
+                    $force_auth = $request->getHeaderLine('x-force-auth-cookies');
                     if ($force_auth) {
                         $self->user = new UserProfile();
                     } else {
