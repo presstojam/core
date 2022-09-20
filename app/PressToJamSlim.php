@@ -355,7 +355,8 @@ class PressToJamSlim {
         }
 
         $this->app->get("/site-map", function($request, $response) use ($self) {
-            $response->getBody()->write(json_encode($self->profile->getSitemap()));
+            $factory = new \PressToJam\SchemaFactory();
+            $response->getBody()->write(json_encode($self->profile->getSitemap($factory)));
             return $response;
         });
 
