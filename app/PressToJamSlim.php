@@ -62,7 +62,7 @@ class PressToJamSlim {
         $method = strtolower($request->getMethod());
          
 
-        if (!$this->profile->hasModelPermissions($model, $method)) {
+        if (!$this->profile->hasPermission($model, $method)) {
             throw new Exceptions\UserException(403, "User " . $this->user->user . " does not have " . $method . " authorisation for model " . $model);
         }
       
@@ -79,7 +79,7 @@ class PressToJamSlim {
         $method = strtolower($request->getMethod());
        
 
-        if (!$this->profile->hasModelPermissions($model, $method)) {
+        if (!$this->profile->hasPermission($model, $method)) {
             throw new Exceptions\UserException(403, "User " . $this->user->user . " does not have " . $method . " authorisation for model " . $model);
         }
 
