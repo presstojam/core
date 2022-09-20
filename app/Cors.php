@@ -5,15 +5,15 @@ namespace PressToJamCore;
 
 class Cors {
 
-    public $headers=["Content-Type",
-    "X-Requested-With",
-    "X-Force-Auth-Cookies",
-    "Accept",
-    "Origin",
-    "Authorization",
-    "Referer",
+    public $headers=["content-type",
+    "x-requested-with",
+    "x-force-auth-cookies",
+    "accept",
+    "origin",
+    "authorization",
+    "referer",
     "sec-ch-ua",
     "sec-ch-ua-mobile",
-    "User-Agent"];
+    "user-agent"];
     public $origin;
 }

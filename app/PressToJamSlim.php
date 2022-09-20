@@ -62,7 +62,7 @@ class PressToJamSlim {
         $method = strtolower($request->getMethod());
          
 
-        if (!$this->profile->hasModelPermissions($model, $method)) {
+        if (!$this->profile->hasPermission($model, $method)) {
             throw new Exceptions\UserException(403, "User " . $this->user->user . " does not have " . $method . " authorisation for model " . $model);
         }
       
@@ -79,7 +79,7 @@ class PressToJamSlim {
         $method = strtolower($request->getMethod());
        
 
-        if (!$this->profile->hasModelPermissions($model, $method)) {
+        if (!$this->profile->hasPermission($model, $method)) {
             throw new Exceptions\UserException(403, "User " . $this->user->user . " does not have " . $method . " authorisation for model " . $model);
         }
 
@@ -142,7 +142,7 @@ class PressToJamSlim {
         $this->app->add(function($request, $handler) use ($self) {
             try {
                 if (!$self->user) {
-                    $force_auth = $request->getHeaderLine('X-FORCE-AUTH-COOKIES');
+                    $force_auth = $request->getHeaderLine('x-force-auth-cookies');
                     if ($force_auth) {
                         $self->user = new UserProfile();
                     } else {
@@ -314,10 +314,15 @@ class PressToJamSlim {
             
             $name = $args["model"];
             $field = $args["field"];
-            $id = (isset($self->params->data["--parentid"])) ? $self->params->data["--parentid"] : 0;
+            $id = (isset($self->params->data["--parent"])) ? $self->params->data["--parent"] : 0;
             $ref = Factory::createReference($name);
-            $results = $ref->{ "get" . Factory::camelCase($field) }($id, $self->user, $self->pdo);
-        
+
+            if (isset($self->params->data["--common"])) {
+                $results = $ref->{ "get" . Factory::camelCase($field) . "FromCommon"}($self->params->data["--common"], $self->user, $self->pdo);
+            } else {
+                $results = $ref->{ "get" . Factory::camelCase($field) }($id, $self->user, $self->pdo);
+            }
+            
             $response->getBody()->write(json_encode($results));
             return $response;
         })->add(function($request, $handler) use ($self) {
@@ -349,7 +354,8 @@ class PressToJamSlim {
         }
 
         $this->app->get("/site-map", function($request, $response) use ($self) {
-            $response->getBody()->write(json_encode($self->profile->getSitemap()));
+            $factory = new \PressToJam\SchemaFactory();
+            $response->getBody()->write(json_encode($self->profile->getSitemap($factory)));
             return $response;
         });
 
